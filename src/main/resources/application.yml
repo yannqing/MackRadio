@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: MackRadio
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://212.64.18.207:3306/video
+    username: root
+    password: your_password
+#  port: 8081
