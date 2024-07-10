@@ -6,4 +6,5 @@ spring:
     url: jdbc:mysql://212.64.18.207:3306/video
     username: root
     password: your_password
+#server:
 #  port: 8081

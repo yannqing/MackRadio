@@ -9,21 +9,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.File;
 import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-@Controller
+@RestController
 public class ImageController {
 
 
 
-    @GetMapping("/download/{fileName}")
-    public ResponseEntity<Resource> getVideo(@PathVariable("fileName") String fileName) {
+    @GetMapping("/download/{filename}")
+    public ResponseEntity<Resource> getVideo(@PathVariable("filename") String fileName) {
         try {
-            Path videoPath = Paths.get("./video/" + fileName + ".mp4");
+            Path videoPath = Paths.get("./" + fileName);
             Resource video = new UrlResource(videoPath.toUri());
             if (video.exists() || video.isReadable()) {
                 return ResponseEntity.ok()

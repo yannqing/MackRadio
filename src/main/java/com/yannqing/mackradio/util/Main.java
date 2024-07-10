@@ -1,4 +1,4 @@
-package com.yannqing.mackradio.util;
+package com.xsy.springbootinit.utils;
 
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
@@ -13,22 +13,8 @@ import java.util.regex.Pattern;
 public class Main {
     public static void main(String[] args) throws InterruptedException {
         //调用
-     List<String> res = getPicture("在一个遥远的未来，宇宙中有一个被繁星环绕的星球，名为赛伦迪尔。赛伦迪尔星球上，有一座悬浮在空中的奇迹之城——天穹城。这座城市以其高科技和魔法的完美结合而闻名，居民们生活在和谐与繁荣之中。\n" +
-             "\n" +
-             "天穹城中，有一个古老的传说，讲述的是一位名为星辰守护者的神秘人物。据说，每当城市面临危机，星辰守护者就会出现，以他那控制星辰力量的能力，保护城市免受灾难。\n" +
-             "\n" +
-             "然而，随着时间的流逝，这个传说逐渐被人遗忘。直到有一天，一个名为莉亚的少女突然出现在天穹城。她拥有一双能够看穿宇宙奥秘的眼睛，以及一种能够与星辰对话的神奇能力。莉亚的到来，似乎预示着一场前所未有的风暴即将来临。\n" +
-             "\n" +
-             "果不其然，就在莉亚抵达天穹城不久，一场宇宙风暴悄然逼近。风暴中，一股黑暗力量从裂缝中涌出，它的目标直指天穹城的核心能源——星辰之心。\n" +
-             "\n" +
-             "城市中的居民们陷入了恐慌，但莉亚却显得异常平静。她站在城市的最高点，凝视着那股黑暗力量，开始吟唱古老的星辰咒语。随着咒语的进行，天空中的星辰开始闪烁，一束束星光汇聚成一道道光流，流向莉亚的双手。\n" +
-             "\n" +
-             "当黑暗力量降临时，莉亚释放了所有汇聚的星光，与黑暗力量展开了激烈的碰撞。光芒与黑暗在空中交织，整个天穹城都被这场宇宙级的对决所震撼。最终，在莉亚的坚持与星辰力量的帮助下，黑暗力量被击退，宇宙风暴也渐渐平息。\n" +
-             "\n" +
-             "莉亚不仅拯救了天穹城，也成为了新一代的星辰守护者。她的事迹迅速传遍了整个星球，成为了新的传说。而每当夜幕降临，星辰闪烁之时，人们都会仰望星空，感谢那位守护着他们的星辰守护者。\n" +
-             "\n" +
-             "从此，莉亚与天穹城的居民们一同维护着城市的和平与繁荣，而星辰之心也成为了城市永恒的守护之源。\n");
-        System.out.println();
+        List<String> picture = getPicture("灵渊大陆，东域，青云国。在青云国的边境，有一个不起眼的小镇，名为碧溪镇。镇上有一个少年，名叫云凡。他天生体弱，无法修炼，常受人白眼，但内心却怀有不凡的梦想——探索灵渊大陆的奥秘，成为传说中的灵尊。云凡的父亲是一位普通的铁匠，母亲早逝，留给他的只有一块看似普通的玉佩。然而，云凡十六岁生辰那日，玉佩突然发出耀眼的光芒，一股神秘力量涌入他的体内，彻底改变了他的命运。那一夜，云凡做了一个梦。梦中，他站在一片星辰璀璨的虚空之中，一位白发老者向他走来，声音虚无缥缈：“云凡，你的命运之轮已经开始转动，拿起你的剑，守护你心中的正义。”醒来后，云凡发现玉佩中蕴含着一部古老的修炼法门——《星辰变》。这部法门与众不同，它不依赖于外界的灵气，而是通过观想星辰，吸收宇宙之力。云凡开始按照《星辰变》的指引修炼，他的身体逐渐变得强健，灵气在体内流转，形成了一个微小的星核。随着修炼的深入，星核逐渐壮大，释放出强大的力量。碧溪镇外，有一片被称为妖兽森林的禁地。云凡为了检验自己的修炼成果，决定进入森林猎杀妖兽。在森林深处，他遇到了一只凶猛的火狼。火狼眼中闪烁着凶狠的光芒，向云凡扑来。云凡深吸一口气，调动体内的星辰之力，一拳轰出，拳风中带着星辰的轨迹，直接击中火狼的头部。火狼哀嚎一声，倒地不起。云凡上前，从火狼身上取出了一颗火红色的内丹。这次战斗，让云凡意识到了自己修炼法门的强大，也让他更加坚定了修炼的决心。随着实力的提升，云凡在碧溪镇的名声也逐渐响亮。他的行为引起了青云国大家族——萧家的注意。萧家家主萧天雄看中了云凡的潜力，决定收他为徒，带他进入更广阔的世界。云凡离开了碧溪镇，踏上了前往青云国都城的道路。在萧家，他接触到了更高级的修炼法门，结识了志同道合的伙伴，也见识了灵渊大陆的广阔与神秘。然而，随着实力的增长，云凡也逐渐卷入了灵渊大陆的纷争与斗争。他发现，自己的身世似乎与一个古老的预言有关，而这个预言，关乎着整个灵渊大陆的命运。 ");
+        System.out.println(picture);
     }
 
     /**
@@ -39,7 +25,7 @@ public class Main {
     private static List<String> getPicture(String content) {
         // Replace with your Personal_Access_Token, Bot_Id, and UserId
         String personalAccessToken = "pat_GBSt86m4MdawUCdecLg4Z00crnLzY8U0bhTBFoMCZK6WkMGAA6f30W1CYh95l9fD";
-        String botId = "7366443219188170804";
+        String botId = "7389169608911241254";
         String userId = "7345861690204536843";
         String yourQuery = content;
 
@@ -97,9 +83,8 @@ public class Main {
 //        Thread.sleep(10000);
         List pictureList = new ArrayList<>(); //存放图片地址
         //轮询获取内容响应
-        pollForImages(conversationId, chatId, personalAccessToken, pictureList);
+        pollForImages(conversationId, chatId, personalAccessToken, content,pictureList);
 
-        System.out.println(pictureList);
         return pictureList;
     }
 
@@ -110,7 +95,7 @@ public class Main {
      * @param personalAccessToken
      * @param pictureList
      */
-    private static void pollForImages(String conversationId, String chatId, String personalAccessToken,List pictureList)  {
+    private static void pollForImages(String conversationId, String chatId, String personalAccessToken,String text,List pictureList)  {
         String url = "https://api.coze.cn/v3/chat/message/list?conversation_id=" + conversationId + "&chat_id=" + chatId;
         HttpRequest getRequest = HttpRequest.get(url)
                 .header("Authorization", "Bearer " + personalAccessToken)
@@ -122,20 +107,25 @@ public class Main {
                 HttpResponse getResponse = getRequest.execute();
                 getResponse.charset("UTF-8");
                 String responseBody = getResponse.body();
-
+                System.out.println(responseBody);
                 // 解析响应内容
                 JSONObject jsonResponse = new JSONObject(responseBody);
                 if (jsonResponse.getInt("code") == 0) {
                     JSONArray data = jsonResponse.getJSONArray("data");
                     if (data != null) {
-                        for (int i = 0; i < data.size(); i++) {
-                            JSONObject message = data.getJSONObject(i);
-                            if (message.containsKey("content")) {
-                                String content = message.getStr("content");
-                                // 检查内容中是否包含图片地址
-                                if (content.contains("[Image")) {
+                        JSONObject message = data.getJSONObject(data.size() - 1);
+                        if (message.containsKey("content")) {
+                            String content = message.getStr("content");
+                            // 检查内容中是否包含图片地址
+                            if (message.containsKey("type")){
+                                String answerType = message.getStr("type");
+                                if (answerType.equals("answer") && content.contains("[Image")){
                                     // 提取图片地址
                                     extractImageUrls(content,pictureList);
+                                    finished = true; //轮询结束标识
+                                }else if (!"function_call".equals(answerType)){
+                                    // 如果不是，则模型未生成图片,重新调用
+                                    getPicture(text);
                                     finished = true; //轮询结束标识
                                 }
                             }

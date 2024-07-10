@@ -196,7 +196,7 @@ public class VideoServiceImpl implements VideoService {
      * @param name
      * @throws IOException
      */
-    public void getMp32(String text, String name) throws IOException {
+    public void getMp32(String text, String name) throws IOException, InterruptedException {
         AppClient appClient = new AppClient(API_KEY, API_SECRET);
 
         // 1.创建任务
@@ -228,7 +228,8 @@ public class VideoServiceImpl implements VideoService {
         String queryRequestData = buildQueryRequestData(JSONObject.parseObject(rawQueryRequestJsonStr), taskId);
 
         // 定时调度查询任务
-        SCHEDULER.scheduleWithFixedDelay(() -> {
+
+        while (true) {
             int taskStatus;
             JSONObject queryRespObj;
             // 请求
@@ -263,9 +264,12 @@ public class VideoServiceImpl implements VideoService {
                         "./image/"
                 );
                 // 任务完成，关闭调度器
-                SCHEDULER.shutdown();
+//                SCHEDULER.shutdown();
+                break;
             }
-        }, 0, 5, TimeUnit.SECONDS);
+            Thread.sleep(5 * 1000);
+        }
+
 
     }
 
@@ -383,7 +387,10 @@ public class VideoServiceImpl implements VideoService {
 
 
     @Override
-    public String getMp42(String text) throws IOException {
+    public String getMp42(String text) throws IOException, InterruptedException {
+        if (text.length() > 1000) {
+            throw new IllegalArgumentException("输入文本过长，请重试！");
+        }
         log.info("生成txt文件开始");
         stringToText(text);
         log.info("生成txt文件结束");
@@ -412,6 +419,7 @@ public class VideoServiceImpl implements VideoService {
 //        log.info("结束生成字幕");
         log.info("开始生成图片");
         List<String> picture = getPicture(text);
+        log.info(picture.toString());
         log.info("结束生成图片");
         try {
 //            List<BufferedImage> images = loadImages("./image/");
@@ -421,6 +429,7 @@ public class VideoServiceImpl implements VideoService {
             int frameHeight = 900; // 设置帧高度
 
             // 加载音频文件
+            log.info("加载音频文件开始");
             File audioFile = new File(audioPath);
             if (!audioFile.exists()) {
                 throw new FileNotFoundException("音频文件不存在：" + audioFile.getAbsolutePath());
@@ -433,21 +442,22 @@ public class VideoServiceImpl implements VideoService {
                 e.printStackTrace();
                 throw new IOException("无法加载音频文件：" + e.getMessage());
             }
-
+            log.info("加载音频文件开始");
 //            获取wav文件的总时长
             long durationInMillis = getWavDuration(new File(audioPath));
-
-            // 计算每句的时长
+            log.info("获取音频文件总时长成功：{}", durationInMillis);
             List<Integer> durations = calculateDurations(sentences, (int) durationInMillis);
+            log.info("计算每句字幕的时长：{}", durations);
 
-            //生成字幕文件
             try {
                 generateSrtFile(sentences, durations, srtFilePath);
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            log.info("生成字幕文件srt成功！");
 
             //初始化视频
+            log.info("开始初始化视频！");
             FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(radioPath, frameWidth, frameHeight);
             recorder.setVideoCodec(avcodec.AV_CODEC_ID_H264);
             recorder.setFormat("mp4");
@@ -464,7 +474,8 @@ public class VideoServiceImpl implements VideoService {
             //srt文件的总时长（单位：秒）
             long srtTime = getSRTTotalDurationInSeconds(srtFilePath);
 
-            int changeImage = (int) (durationInMillis / images.size()) + 1;
+//            int changeImage = (int) (durationInMillis / images.size()) + 1;
+            int changeImage = (int) (srtTime / images.size()) + 1;
 
 
 
@@ -474,6 +485,9 @@ public class VideoServiceImpl implements VideoService {
 
             for (int i = 0; i < totalFrames; i++) {
                 int imageIndex = i / framesPerImage;
+                if (imageIndex >= images.size()) {
+                    break; // 确保不会超出图片数量
+                }
                 BufferedImage image = images.get(imageIndex);
                 // 定义路径
                 int[] path = definePath(image.getWidth(), frameWidth, changeImage);
@@ -509,6 +523,8 @@ public class VideoServiceImpl implements VideoService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        log.info("视频生成成功！");
+
         //给视频添加字幕
         mergeSRT(radioPath, outputPath);
 
@@ -610,24 +626,15 @@ public class VideoServiceImpl implements VideoService {
         writer.close();
     }
 
-    // 格式化时间
-    private String formatTime2(int milliseconds) {
-        int hours = milliseconds / 3600000;
-        int minutes = (milliseconds % 3600000) / 60000;
-        int seconds = (milliseconds % 60000) / 1000;
-        int millis = milliseconds % 1000;
-
-        return String.format("%02d:%02d:%02d,%03d", hours, minutes, seconds, millis);
-    }
     /**
      * 获取图片（coze）
      * @param content
      * @return
      */
-    private List<String> getPicture(String content) {
+    public List<String> getPicture(String content) {
         // Replace with your Personal_Access_Token, Bot_Id, and UserId
         String personalAccessToken = "pat_GBSt86m4MdawUCdecLg4Z00crnLzY8U0bhTBFoMCZK6WkMGAA6f30W1CYh95l9fD";
-        String botId = "7366443219188170804";
+        String botId = "7389169608911241254";
         String userId = "7345861690204536843";
         String yourQuery = content;
 
@@ -685,9 +692,8 @@ public class VideoServiceImpl implements VideoService {
 //        Thread.sleep(10000);
         List pictureList = new ArrayList<>(); //存放图片地址
         //轮询获取内容响应
-        pollForImages(conversationId, chatId, personalAccessToken, pictureList);
+        pollForImages(conversationId, chatId, personalAccessToken, content,pictureList);
 
-        System.out.println(pictureList);
         return pictureList;
     }
 
@@ -698,7 +704,7 @@ public class VideoServiceImpl implements VideoService {
      * @param personalAccessToken
      * @param pictureList
      */
-    private void pollForImages(String conversationId, String chatId, String personalAccessToken,List pictureList)  {
+    private void pollForImages(String conversationId, String chatId, String personalAccessToken,String text,List pictureList)  {
         String url = "https://api.coze.cn/v3/chat/message/list?conversation_id=" + conversationId + "&chat_id=" + chatId;
         HttpRequest getRequest = HttpRequest.get(url)
                 .header("Authorization", "Bearer " + personalAccessToken)
@@ -710,20 +716,25 @@ public class VideoServiceImpl implements VideoService {
                 HttpResponse getResponse = getRequest.execute();
                 getResponse.charset("UTF-8");
                 String responseBody = getResponse.body();
-
+                System.out.println(responseBody);
                 // 解析响应内容
                 cn.hutool.json.JSONObject jsonResponse = new cn.hutool.json.JSONObject(responseBody);
                 if (jsonResponse.getInt("code") == 0) {
                     JSONArray data = jsonResponse.getJSONArray("data");
                     if (data != null) {
-                        for (int i = 0; i < data.size(); i++) {
-                            cn.hutool.json.JSONObject message = data.getJSONObject(i);
-                            if (message.containsKey("content")) {
-                                String content = message.getStr("content");
-                                // 检查内容中是否包含图片地址
-                                if (content.contains("[Image")) {
+                        cn.hutool.json.JSONObject message = data.getJSONObject(data.size() - 1);
+                        if (message.containsKey("content")) {
+                            String content = message.getStr("content");
+                            // 检查内容中是否包含图片地址
+                            if (message.containsKey("type")){
+                                String answerType = message.getStr("type");
+                                if (answerType.equals("answer") && content.contains("[Image")){
                                     // 提取图片地址
                                     extractImageUrls(content,pictureList);
+                                    finished = true; //轮询结束标识
+                                }else if (!"function_call".equals(answerType)){
+                                    // 如果不是，则模型未生成图片,重新调用
+                                    getPicture(text);
                                     finished = true; //轮询结束标识
                                 }
                             }
@@ -754,7 +765,7 @@ public class VideoServiceImpl implements VideoService {
      */
     public void extractImageUrls(String jsonString,List pictureList)  {
         // 正则表达式，用于匹配 [Image] 标识符后的 URL
-        Pattern pattern = Pattern.compile("\\[Image.*?\\]\\((.*?)\\)");
+        Pattern pattern = Pattern.compile("!\\[.*?\\]\\((.*?)\\)");
         Matcher matcher = pattern.matcher(jsonString);
 
         // 提取匹配的 URL
@@ -762,7 +773,6 @@ public class VideoServiceImpl implements VideoService {
             pictureList.add(matcher.group(1));
         }
     }
-
     /**
      * 获取wav文件的时长
      * @param file
