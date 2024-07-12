@@ -17,7 +17,8 @@ public class Code {
 
     public static final Integer DELETE_CONTAINER_FAILURE = 40000;   //容器正在运行，无法删除
 
-    public static final Integer RUN_CONTAINER_FAILURE = 50000;
+    public static final Integer AUTHENTICATE_FAILURE = 50000;       //认证失败
+
 
 
 }

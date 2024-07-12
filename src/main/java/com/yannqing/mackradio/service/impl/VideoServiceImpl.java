@@ -5,24 +5,21 @@ import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.yannqing.mackradio.domain.User;
 import com.yannqing.mackradio.handler.ResultHandler;
+import com.yannqing.mackradio.mapper.UserMapper;
+import com.yannqing.mackradio.service.UserService;
 import com.yannqing.mackradio.service.VideoService;
 import com.yannqing.mackradio.tool.AppClient;
 import com.yannqing.mackradio.tool.RequestDataTool;
-import com.yannqing.mackradio.vo.Subtitle;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.bytedeco.ffmpeg.global.avcodec;
-import org.bytedeco.ffmpeg.global.avutil;
 import org.bytedeco.javacv.*;
 import org.bytedeco.javacv.Frame;
-import org.bytedeco.opencv.opencv_cudacodec.VideoWriter;
-import org.jaudiotagger.audio.AudioFile;
-import org.jaudiotagger.audio.AudioFileIO;
-import org.jaudiotagger.audio.exceptions.CannotReadException;
-import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
-import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
-import org.jaudiotagger.tag.TagException;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -30,51 +27,43 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+
+import static com.yannqing.mackradio.common.UserConstant.USER_LOGIN_STATE;
 
 @Service
 @Slf4j
 public class VideoServiceImpl implements VideoService {
 
+    @Resource
+    private UserService userService;
 
     // 关键参数
     private static final String APP_ID = "d905bce2";
     private static final String API_KEY = "41ba89296a766cf4ade99a43141717ec";
     private static final String API_SECRET = "OGJmNTY2MjFiZmEzMGU4MDdlNTc4MWVm";
 
-    String sourceMp4 = "./video/source.mp4";
-    String musicMp4 = "./video/musicRadio.mp4";
-    String outPutMp4 = "./video/output.mp4";
     String srtFilePath = "./srt/dialog.srt";
     String textFilePath = "./text/";
     String textFileName = "";
-    String images = "./image";
-
-    List<String> backgroundMusic = Arrays.asList("./background/m2.mp3", "./background/m3.mp3");
-
 
     private Java2DFrameConverter converter;
+
+    public VideoServiceImpl(UserMapper userMapper) {
+    }
 
     private Java2DFrameConverter getConverter() {
         if (converter == null) {
@@ -83,120 +72,13 @@ public class VideoServiceImpl implements VideoService {
         return converter;
     }
 
-    @Override
-    public Object getMp4(String text) throws Exception {
-//        //1. 根据文字生成mp3
-//        log.info("=======生成MP3开始========");
-//        getMp3(text);
-//        log.info("=======生成MP3结束========");
-//        //2. 根据文字生成图片
-//        log.info("=======生成图片开始========");
-//        log.info("=======生成图片结束========");
-//        //...
-//        //3. 根据图片，mp3生成视频
-//        log.info("=======生成MP4开始========");
-//        // 图片集合的目录
-//        List<File> list = readFile(images);
-//        int width = 1849;
-//        int height = 932;
-//        createMp4(sourceMp4, list, width, height, getMp3Duration(audioPath));
-//        mergeAudioAndVideo(sourceMp4, audioPath, musicMp4);
-//        log.info("=======生成MP4结束========");
-//
-//        //4. 根据文字生成字幕文件srt
-//        log.info("=======生成字幕开始========");
-//
-//        List<String> sentences = splitSentencesFromFile(text);
-//        generateSrtFromList(sentences, srtFilePath);
-//        log.info("=======生成字幕结束========");
-//        //5. 根据字幕文件srt，视频文件mp4合成有字幕的视频。
-//        log.info("=======字幕合成开始========");
-//        try {
-//            String name = UUID.randomUUID().toString();
-//            ProcessBuilder processBuilder = new ProcessBuilder("bash", "./main.sh", "./srt/dialog.srt", "./video/musicRadio.mp4", "./" + name + ".mp4");
-//            Process process = processBuilder.start();
-//
-//// 获取进程的输入流和错误流
-//            InputStream inputStream = process.getInputStream();
-//            InputStream errorStream = process.getErrorStream();
-//
-//// 创建线程来读取输入流和错误流
-//            Thread inputThread = new Thread(() -> {
-//                try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-//                    String line;
-//                    while ((line = reader.readLine()) != null) {
-//                        System.out.println("Output: " + line);
-//                    }
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            });
-//
-//            Thread errorThread = new Thread(() -> {
-//                try (BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream))) {
-//                    String line;
-//                    while ((line = reader.readLine()) != null) {
-//                        System.err.println("Error: " + line);
-//                    }
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            });
-//
-//// 启动输入流和错误流读取线程
-//            inputThread.start();
-//            errorThread.start();
-//
-//// 等待外部进程执行完成
-//            int exitCode = process.waitFor();
-//            System.out.println("Exit code: " + exitCode);
-//        } catch (Exception e) {
-//            log.error("字幕合成失败！");
-//            log.error(e.getMessage());
-//            e.printStackTrace();
-//        }
-//        log.info("=======字幕合成结束========");
-        return null;
-    }
-
-
-    // 定时调度
-    private static final ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(1);
-    private static String task_id = "";
-
-//    public void getMp3(String text) {
-//        String fileUrl = "http://212.64.18.207:7021/down?text=" + URLEncoder.encode(text, StandardCharsets.UTF_8);
-//
-//        String savePath = audioPath;
-//
-//        try {
-//            URL url = new URL(fileUrl);
-//            Path saveFilePath = Path.of(savePath);
-//
-//            // Download the file using BufferedInputStream
-//            try (BufferedInputStream in = new BufferedInputStream(url.openStream());
-//                 FileOutputStream fileOutputStream = new FileOutputStream(saveFilePath.toFile())) {
-//
-//                byte[] dataBuffer = new byte[1024];
-//                int bytesRead;
-//                while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
-//                    fileOutputStream.write(dataBuffer, 0, bytesRead);
-//                }
-//            }
-//
-//            System.out.println("File downloaded successfully!");
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
-
     /**
      * 讯飞模型语音生成
      * @param text
      * @param name
      * @throws IOException
      */
-    public void getMp32(String text, String name) throws IOException, InterruptedException {
+    public void getMp3(String text, String name) throws IOException, InterruptedException {
         AppClient appClient = new AppClient(API_KEY, API_SECRET);
 
         // 1.创建任务
@@ -220,7 +102,6 @@ public class VideoServiceImpl implements VideoService {
 
         // 取 task id
         String taskId = (String) JSONPath.eval(createRespObj, "$.header.task_id");
-        task_id = taskId;
         // 2.查询任务
         String queryUrl = RequestDataTool.getQueryUrl();
         String rawQueryRequestJsonStr = RequestDataTool.getQueryRequestJsonStr();
@@ -249,11 +130,11 @@ public class VideoServiceImpl implements VideoService {
                 ResultHandler.respDataPostProcess(queryRespObj);
 //                nameToWav();
                 //将生成的lame文件转为wav
-                toWav(task_id);
+                toWav(taskId);
                 //给wav文件配背景音乐
                 String randomBackgroundMusic = getRandomBackgroundMusic();
                 String audioPath = "./music/" + UUID.randomUUID().toString() + ".wav";
-                mergeBackground("./music/" + task_id + ".wav", randomBackgroundMusic, audioPath);
+                mergeBackground("./music/" + taskId + ".wav", randomBackgroundMusic, audioPath);
                 //合成视频
                 change(text,
                         "./srt/dialog.srt",
@@ -277,7 +158,27 @@ public class VideoServiceImpl implements VideoService {
      * 获取随机背景音乐
      * @return
      */
+    @Override
     public String getRandomBackgroundMusic(){
+
+
+
+        String filePath = "./background/";
+        File directory = new File(filePath);
+        List<String> backgroundMusic = null;
+        if (directory.isDirectory()) {
+            //获取所有子文件
+            File[] files = directory.listFiles();
+            if (files == null || files.length == 0) {
+                throw new IllegalArgumentException("文件夹下无背景音乐，请假检查！");
+            } else {
+                backgroundMusic = Arrays.stream(files).map(File::getName).toList();
+            }
+
+        }else{
+            throw new IllegalArgumentException("背景音乐文件夹打开错误！");
+        }
+
         // 创建 Random 对象
         Random random = new Random();
 
@@ -285,7 +186,7 @@ public class VideoServiceImpl implements VideoService {
         int index = random.nextInt(backgroundMusic.size());
 
         // 获取随机值
-        return backgroundMusic.get(index);
+        return filePath + backgroundMusic.get(index);
     }
 
 
@@ -315,7 +216,11 @@ public class VideoServiceImpl implements VideoService {
         JSONPath.set(requestData, "$.payload.text.text", Base64.getEncoder().encodeToString(FileUtils.readFileToByteArray(file)));
         return requestData.toString();
     }
-
+    /**
+     * 对用户输入的文本进行断句
+     * @param text
+     * @return
+     */
     public List<String> splitSentencesFromFile(String text) {
         List<String> sentences = new ArrayList<>();
 
@@ -333,47 +238,11 @@ public class VideoServiceImpl implements VideoService {
         return sentences;
     }
 
-    public void generateSrtFromList(List<String> sentences, String srtFilePath) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(srtFilePath))) {
-            int index = 1;
-            int startTime = 0;
-
-            for (String sentence : sentences) {
-                // Skip empty sentences
-                if (sentence.trim().isEmpty()) {
-                    continue;
-                }
-
-                // Write subtitle index
-                writer.write(Integer.toString(index));
-                writer.newLine();
-
-                int duration = calculateDuration(sentence);
-                // Write subtitle time duration
-                writer.write(formatTime(startTime) + " --> " + formatTime(startTime + duration));
-                writer.newLine();
-
-                writer.write(sentence);
-                writer.newLine();
-                writer.newLine();
-
-                index++;
-                startTime += duration;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private int calculateDuration(String subtitle) {
-        // Calculate duration based on the length of the subtitle
-        // You can adjust the duration calculation logic according to your requirements
-        int length = subtitle.length();
-        int baseDuration = 1000; // 1 second
-        int charactersPerSecond = 200; // Adjust this value according to your preference
-        return subtitle.length() * charactersPerSecond;
-    }
-
+    /**
+     * 格式化时间，写入srt文件
+     * @param milliseconds
+     * @return
+     */
     private String formatTime(int milliseconds) {
         int hours = milliseconds / 3600000;
         milliseconds %= 3600000;
@@ -385,44 +254,46 @@ public class VideoServiceImpl implements VideoService {
         return String.format("%02d:%02d:%02d,%03d", hours, minutes, seconds, milliseconds);
     }
 
-
+    /**
+     * 获取mp4视频文件
+     * @param text
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
     @Override
-    public String getMp42(String text) throws IOException, InterruptedException {
+    public String getMp4(String text, HttpServletRequest request) throws IOException, InterruptedException {
         if (text.length() > 1000) {
             throw new IllegalArgumentException("输入文本过长，请重试！");
         }
+        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+
+        if (loginUser.getAccessTimes() <= 0) {
+            throw new IllegalArgumentException("您的可访问次数不足，请重试！");
+        }
+
         log.info("生成txt文件开始");
         stringToText(text);
         log.info("生成txt文件结束");
         String name = UUID.randomUUID() + ".mp4";
-        getMp32(text, name);
-//        change(text,
-//                "./srt/dialog.srt",
-//                "./music/" + "outputm3" + ".wav",
-//                "./video/output.mp4",
-//                "./main.sh",
-//                "./" + name,
-//                "./image/"
-//        );
+        getMp3(text, name);
 
-
-
+        //用户可访问次数-1
+        userService.update(new UpdateWrapper<User>().eq("id", loginUser.getId()).set("accessTimes", loginUser.getAccessTimes() - 1));
+        log.info("返回成功！");
         return name;
     }
 
     @Override
-    public String change(String text, String srtFilePath, String audioPath, String radioPath, String shPath, String outputPath, String imagePath) {
+    public void change(String text, String srtFilePath, String audioPath, String radioPath, String shPath, String outputPath, String imagePath) {
 
-//        log.info("开始生成字幕");
+        //断句
         List<String> sentences = splitSentencesFromFile(text);
-//        generateSrtFromList(sentences, srtFilePath);
-//        log.info("结束生成字幕");
         log.info("开始生成图片");
         List<String> picture = getPicture(text);
         log.info(picture.toString());
         log.info("结束生成图片");
         try {
-//            List<BufferedImage> images = loadImages("./image/");
             List<BufferedImage> images = loadImages(picture);
             
             int frameWidth = 1088; // 设置帧宽度
@@ -442,8 +313,8 @@ public class VideoServiceImpl implements VideoService {
                 e.printStackTrace();
                 throw new IOException("无法加载音频文件：" + e.getMessage());
             }
-            log.info("加载音频文件开始");
-//            获取wav文件的总时长
+            log.info("加载音频文件结束");
+            //获取wav文件的总时长
             long durationInMillis = getWavDuration(new File(audioPath));
             log.info("获取音频文件总时长成功：{}", durationInMillis);
             List<Integer> durations = calculateDurations(sentences, (int) durationInMillis);
@@ -473,14 +344,8 @@ public class VideoServiceImpl implements VideoService {
 
             //srt文件的总时长（单位：秒）
             long srtTime = getSRTTotalDurationInSeconds(srtFilePath);
-
-//            int changeImage = (int) (durationInMillis / images.size()) + 1;
-            int changeImage = (int) (srtTime / images.size()) + 1;
-
-
-
+            int changeImage = (int) (srtTime / images.size()) + 1;  //切换一张图片需要的时间（单位：s）
             int framesPerImage = 30 * changeImage; // 每2秒切换一个图片，帧率为30
-//            log.error("每个图片播放的时间", framesPerImage);
             int totalFrames = framesPerImage * images.size();
 
             for (int i = 0; i < totalFrames; i++) {
@@ -490,7 +355,7 @@ public class VideoServiceImpl implements VideoService {
                 }
                 BufferedImage image = images.get(imageIndex);
                 // 定义路径
-                int[] path = definePath(image.getWidth(), frameWidth, changeImage);
+                int[] path = definePath(image.getWidth(), changeImage);
                 // 计算Y坐标（线性上下移动）
                 int maxY = image.getHeight() - frameHeight;
                 int cycleFrames = totalFrames / 6; // 完成一次上下移动所需的帧数
@@ -528,7 +393,6 @@ public class VideoServiceImpl implements VideoService {
         //给视频添加字幕
         mergeSRT(radioPath, outputPath);
 
-        return null;
     }
 
     /**
@@ -586,7 +450,12 @@ public class VideoServiceImpl implements VideoService {
         log.info("=======字幕合成结束========");
     }
 
-    // 计算每句的时长
+    /**
+     * 计算每句的时长
+     * @param sentences
+     * @param totalDuration
+     * @return
+     */
     private static List<Integer> calculateDurations(List<String> sentences, int totalDuration) {
         List<Integer> durations = new ArrayList<>();
         int totalLength = sentences.stream().mapToInt(String::length).sum();
@@ -599,7 +468,13 @@ public class VideoServiceImpl implements VideoService {
         return durations;
     }
 
-    // 生成.srt字幕文件
+    /**
+     * 生成字幕文件
+     * @param subtitles
+     * @param durations
+     * @param fileName
+     * @throws IOException
+     */
     private void generateSrtFile(List<String> subtitles, List<Integer> durations, String fileName) throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
         int currentTime = 0;
@@ -923,7 +798,7 @@ public class VideoServiceImpl implements VideoService {
         return images;
     }
 
-    private int[] definePath(int imageWidth, int frameWidth, int per) {
+    private int[] definePath(int imageWidth, int per) {
         // 这里定义路径，返回一个表示x坐标的数组
         // 示例：简单的从左到右移动
         int pathLength = 30 * 2 * per; // 增加路径数组的长度以减慢移动速度
@@ -934,26 +809,12 @@ public class VideoServiceImpl implements VideoService {
         return path;
     }
 
-    private void convertMp3ToWav(String mp3FilePath, String wavFilePath) throws IOException {
-        ProcessBuilder processBuilder = new ProcessBuilder("ffmpeg", "-i", mp3FilePath, wavFilePath);
-        Process process = processBuilder.start();
-        try {
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        System.err.println(line);
-                    }
-                }
-                throw new IOException("FFmpeg 转换失败，退出码：" + exitCode);
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IOException("FFmpeg 转换过程被中断", e);
-        }
-    }
-
+    /**
+     * 按帧添加音频
+     * @param audioInputStream
+     * @param recorder
+     * @param frameDuration
+     */
     private void addAudioSegment(AudioInputStream audioInputStream, FFmpegFrameRecorder recorder, double frameDuration) {
         try {
             // 计算每帧的采样数

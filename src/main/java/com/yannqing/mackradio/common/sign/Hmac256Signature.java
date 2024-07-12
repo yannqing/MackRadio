@@ -1,6 +1,6 @@
 package com.yannqing.mackradio.common.sign;
 
-import com.yannqing.mackradio.util.CryptUtil;
+import com.yannqing.mackradio.utils.CryptUtil;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.SignatureException;

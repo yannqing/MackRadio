@@ -2,11 +2,9 @@ package com.yannqing.mackradio.handler;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
-import com.yannqing.mackradio.util.HttpUtil;
+import com.yannqing.mackradio.utils.HttpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;

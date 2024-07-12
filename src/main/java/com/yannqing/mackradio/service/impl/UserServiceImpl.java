@@ -5,10 +5,16 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.yannqing.mackradio.domain.User;
 import com.yannqing.mackradio.service.UserService;
 import com.yannqing.mackradio.mapper.UserMapper;
+import com.yannqing.mackradio.utils.RedisCache;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.session.Session;
+import org.springframework.session.SessionRepository;
+import org.springframework.session.web.http.SessionRepositoryFilter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
@@ -30,10 +36,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Resource
     private UserMapper userMapper;
 
-    /**
-     * 盐值，混淆密码
-     */
-    private static final String SALT = "video";
+    @Resource
+    private RedisCache redisCache;
+
+    @Resource
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Override
     public long userRegister(String username, String password, String checkPassword) {
@@ -65,7 +72,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             throw new IllegalArgumentException("账号重复");
         }
         // 2. 加密
-        String encryptPassword = DigestUtils.md5DigestAsHex((SALT + password).getBytes());
+        String encryptPassword = passwordEncoder.encode(password);
         // 3. 插入数据
         User user = new User();
         user.setUsername(username);
@@ -75,44 +82,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             return -1;
         }
         return user.getId();
-    }
-
-
-    @Override
-    public User login(String username, String password, HttpServletRequest request) {
-        // 1. 校验
-        if (StringUtils.isAnyBlank(username, password)) {
-            throw new IllegalArgumentException("参数不能为空，请重试！");
-        }
-        if (username.length() < 4) {
-            throw new IllegalArgumentException("账户长度不能小于4位！");
-        }
-        if (password.length() < 8) {
-            throw new IllegalArgumentException("密码长度不能小于8位！");
-        }
-        // 账户不能包含特殊字符
-        String validPattern = "[`~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
-        Matcher matcher = Pattern.compile(validPattern).matcher(username);
-        if (matcher.find()) {
-            throw new IllegalArgumentException("账户不能包含特殊字符");
-        }
-        // 2. 加密
-        String encryptPassword = DigestUtils.md5DigestAsHex((SALT + password).getBytes());
-        // 查询用户是否存在
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("username", username);
-        queryWrapper.eq("password", encryptPassword);
-        User user = userMapper.selectOne(queryWrapper);
-        // 用户不存在
-        if (user == null) {
-            log.info("user login failed, username cannot match password");
-            throw new IllegalArgumentException("用户不存在");
-        }
-        // 3. 用户脱敏
-        User safetyUser = getSafetyUser(user);
-        // 4. 记录用户的登录态
-        request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
-        return safetyUser;
     }
 
     @Override
@@ -128,19 +97,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         safetyUser.setEmail(originUser.getEmail());
         safetyUser.setUserStatus(originUser.getUserStatus());
         safetyUser.setCreatedTime(originUser.getCreatedTime());
+        safetyUser.setAccessTimes(originUser.getAccessTimes());
         return safetyUser;
     }
 
-    /**
-     * 用户注销
-     *
-     * @param request
-     */
     @Override
-    public int userLogout(HttpServletRequest request) {
-        // 移除登录态
-        request.getSession().removeAttribute(USER_LOGIN_STATE);
-        return 1;
+    public int getAccessTimes(HttpServletRequest request) {
+        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        return loginUser.getAccessTimes();
     }
 }
 

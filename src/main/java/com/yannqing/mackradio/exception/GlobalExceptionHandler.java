@@ -1,5 +1,6 @@
 package com.yannqing.mackradio.exception;
 
+import com.yannqing.mackradio.common.Code;
 import com.yannqing.mackradio.utils.ResultUtils;
 import com.yannqing.mackradio.vo.BaseResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -58,6 +59,12 @@ public class GlobalExceptionHandler {
     public BaseResponse<Object> handleRedisConnectionFailureException(IllegalArgumentException e, HttpServletRequest request, HttpServletResponse response){
         log.error("参数错误：{}", e.getMessage());
         return ResultUtils.failure("参数错误->"+e.getMessage());
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public BaseResponse<Object> handleIllegalStateException(IllegalStateException e, HttpServletRequest request, HttpServletResponse response){
+        log.error("认证失败：{}", e.getMessage());
+        return ResultUtils.failure(Code.AUTHENTICATE_FAILURE, null, "认证失败: "+e.getMessage());
     }
 
     /**

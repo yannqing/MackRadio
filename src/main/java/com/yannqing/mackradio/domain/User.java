@@ -1,9 +1,6 @@
 package com.yannqing.mackradio.domain;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -77,10 +74,18 @@ public class User implements Serializable {
     private Date updatedTime;
 
     /**
-     * 
+     * 逻辑删除
      */
     @TableField(value = "isDelete")
+    @TableLogic
     private Integer isDelete;
+
+    /**
+     * 用户可访问次数，默认50
+     */
+    @TableField(value = "accessTimes")
+    private Integer accessTimes;
+
 
     @Serial
     @TableField(exist = false)

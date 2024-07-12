@@ -1,11 +1,9 @@
 package com.yannqing.mackradio.tool;
 
 import com.yannqing.mackradio.common.sign.Hmac256Signature;
-import com.yannqing.mackradio.util.AuthUtil;
-import com.yannqing.mackradio.util.HttpUtil;
+import com.yannqing.mackradio.utils.AuthUtil;
+import com.yannqing.mackradio.utils.HttpUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
 import java.security.SignatureException;
