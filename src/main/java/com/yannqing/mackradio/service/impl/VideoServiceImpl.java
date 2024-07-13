@@ -6,6 +6,7 @@ import cn.hutool.json.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yannqing.mackradio.domain.User;
 import com.yannqing.mackradio.handler.ResultHandler;
 import com.yannqing.mackradio.mapper.UserMapper;
@@ -13,6 +14,7 @@ import com.yannqing.mackradio.service.UserService;
 import com.yannqing.mackradio.service.VideoService;
 import com.yannqing.mackradio.tool.AppClient;
 import com.yannqing.mackradio.tool.RequestDataTool;
+import com.yannqing.mackradio.utils.JwtUtils;
 import com.yannqing.mackradio.utils.RedisCache;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -53,12 +55,14 @@ public class VideoServiceImpl implements VideoService {
     @Resource
     private UserService userService;
 
+    @Resource
+    private ObjectMapper objectMapper;
+
     // 关键参数
     private static final String APP_ID = "d905bce2";
     private static final String API_KEY = "41ba89296a766cf4ade99a43141717ec";
     private static final String API_SECRET = "OGJmNTY2MjFiZmEzMGU4MDdlNTc4MWVm";
 
-    String srtFilePath = "./srt/dialog.srt";
     String textFilePath = "./text/";
     String textFileName = "";
 
@@ -272,8 +276,12 @@ public class VideoServiceImpl implements VideoService {
         if (text.length() > 1000) {
             throw new IllegalArgumentException("输入文本过长，请重试！");
         }
-        String userId = request.getHeader("userId");
-        User loginUser = redisCache.getCacheObject("token:" + userId);
+        int userId = Integer.parseInt(request.getHeader("userId"));
+        String token = redisCache.getCacheObject("token:" + userId);
+        String loginUserInfo = JwtUtils.getUserInfoFromToken(token);
+        User loginUser = objectMapper.readValue(loginUserInfo, User.class);
+
+//        User loginUser = new User();
         if (loginUser == null) {
             throw new IllegalStateException("未登录，请重新登录！");
         }
@@ -401,7 +409,7 @@ public class VideoServiceImpl implements VideoService {
         log.info("视频生成成功！");
 
         //给视频添加字幕
-        mergeSRT(radioPath, outputPath);
+        mergeSRT(radioPath, outputPath, srtFilePath);
 
     }
 
@@ -410,7 +418,7 @@ public class VideoServiceImpl implements VideoService {
      * @param radioPath 原mp4路径
      * @param outputPath 生成的mp4路径
      */
-    public void mergeSRT(String radioPath, String outputPath) {
+    public void mergeSRT(String radioPath, String outputPath, String srtFilePath) {
         log.info("=======字幕合成开始========");
         String name = "";
         try {
