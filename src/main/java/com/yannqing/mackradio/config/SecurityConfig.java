@@ -53,7 +53,7 @@ public class SecurityConfig {
 
         //设置退出logout过滤器
         http.logout((logout)->logout
-                .logoutUrl("/auth/logout")
+                .logoutUrl("/user/logout")
                 .logoutSuccessHandler(new MyLogoutSuccessHandler(redisCache))
         );
 

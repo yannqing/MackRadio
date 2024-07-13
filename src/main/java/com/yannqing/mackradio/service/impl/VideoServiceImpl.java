@@ -13,6 +13,7 @@ import com.yannqing.mackradio.service.UserService;
 import com.yannqing.mackradio.service.VideoService;
 import com.yannqing.mackradio.tool.AppClient;
 import com.yannqing.mackradio.tool.RequestDataTool;
+import com.yannqing.mackradio.utils.RedisCache;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ import org.apache.commons.io.FileUtils;
 import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.javacv.*;
 import org.bytedeco.javacv.Frame;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -61,6 +63,8 @@ public class VideoServiceImpl implements VideoService {
     String textFileName = "";
 
     private Java2DFrameConverter converter;
+    @Autowired
+    private RedisCache redisCache;
 
     public VideoServiceImpl(UserMapper userMapper) {
     }
@@ -268,7 +272,11 @@ public class VideoServiceImpl implements VideoService {
         if (text.length() > 1000) {
             throw new IllegalArgumentException("输入文本过长，请重试！");
         }
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        String userId = request.getHeader("userId");
+        User loginUser = redisCache.getCacheObject("token:" + userId);
+        if (loginUser == null) {
+            throw new IllegalStateException("未登录，请重新登录！");
+        }
 
         if (loginUser.getAccessTimes() <= 0) {
             throw new IllegalArgumentException("您的可访问次数不足，请重试！");
