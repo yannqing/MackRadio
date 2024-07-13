@@ -44,6 +44,12 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
 
         String token = request.getHeader("token");
         int userId = Integer.parseInt(request.getHeader("userId"));
+        if (token == null) {
+            response.setStatus(500);
+            response.setContentType("application/json;charset=utf-8");
+            response.getWriter().write(JSONUtil.toJsonStr(ResultUtils.failure(Code.TOKEN_AUTHENTICATE_FAILURE,null,"无token，请重试")));
+            log.info("无token，请重试");
+        }
         //验证token的合法性，不报错即合法
 
         String redisToken = redisCache.getCacheObject("token:" + userId);

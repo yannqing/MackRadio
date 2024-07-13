@@ -56,7 +56,7 @@ class MackRadioApplicationTests {
      */
     @Test
     void createUserPassword() {
-        String encode = passwordEncoder.encode("12345678@Cc");
+        String encode = passwordEncoder.encode("12345678");
         System.out.println(encode);
     }
 }
