@@ -136,10 +136,12 @@ public class VideoServiceImpl implements VideoService {
                 String audioPath = "./music/" + UUID.randomUUID().toString() + ".wav";
                 mergeBackground("./music/" + taskId + ".wav", randomBackgroundMusic, audioPath);
                 //合成视频
+                String srtFilePath = "./srt/" + UUID.randomUUID() + ".srt";
+                String radioPath = "./video/" + UUID.randomUUID() + ".mp4";
                 change(text,
-                        "./srt/dialog.srt",
+                        srtFilePath,
                         audioPath,
-                        "./video/output.mp4",
+                        radioPath,
                         "./main.sh",
                         "./" + name,
                         "./image/"

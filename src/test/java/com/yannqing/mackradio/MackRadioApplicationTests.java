@@ -1,5 +1,8 @@
 package com.yannqing.mackradio;
 
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.yannqing.mackradio.domain.User;
+import com.yannqing.mackradio.service.UserService;
 import com.yannqing.mackradio.service.VideoService;
 import com.yannqing.mackradio.service.impl.VideoServiceImpl;
 import jakarta.annotation.Resource;
@@ -9,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.util.DigestUtils;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -51,12 +55,23 @@ class MackRadioApplicationTests {
 
     }
 
+    @Resource
+    private UserService userService;
+
     /**
      * 生成用户加密密码
      */
     @Test
     void createUserPassword() {
-        String encode = passwordEncoder.encode("12345678");
-        System.out.println(encode);
+        String[] passwords = new String[] {
+            "q1WADgiQzSiG", "X75MDTMCBZiE","GS1KLi4rBUjc","w8ZcSzMdu9aD","hDB2srMvmjg3","DOBDJzeUNMSM","gYT1yru5lBHj","hSBUZPlT0Lu7","ZgrNfvllNS33","XX8u9Yjjtk5s","v1spYpAn8cPf","DFgeDdsMEanr","IrzEO3NiqWIy","7xMIZPhXIg1z","gQuXcOgbEZfv"
+        };
+
+        List<String> pass = Arrays.asList(passwords);
+
+        int index = 4;
+        for (int i = 0; i < pass.size(); i++) {
+            userService.update(new UpdateWrapper<User>().eq("id", index ++).set("password", passwordEncoder.encode(pass.get(i))));
+        }
     }
 }
