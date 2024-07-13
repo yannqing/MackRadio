@@ -16,4 +16,6 @@ public interface UserService extends IService<User> {
     User getSafetyUser(User originUser);
 
     int getAccessTimes(HttpServletRequest request);
+
+    User getInfo(HttpServletRequest request);
 }

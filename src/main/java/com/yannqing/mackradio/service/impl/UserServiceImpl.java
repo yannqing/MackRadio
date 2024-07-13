@@ -106,6 +106,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         return loginUser.getAccessTimes();
     }
+
+    @Override
+    public User getInfo(HttpServletRequest request) {
+        int userId = Integer.parseInt(request.getHeader("userId"));
+
+        return userMapper.selectById(userId);
+    }
 }
 
 
