@@ -7,9 +7,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yannqing.mackradio.common.Code;
 import com.yannqing.mackradio.domain.User;
-import com.yannqing.mackradio.exception.BusinessException;
 import com.yannqing.mackradio.handler.ResultHandler;
 import com.yannqing.mackradio.mapper.UserMapper;
 import com.yannqing.mackradio.service.UserService;
@@ -47,8 +45,6 @@ import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.yannqing.mackradio.common.UserConstant.USER_LOGIN_STATE;
 
 @Service
 @Slf4j
@@ -276,9 +272,10 @@ public class VideoServiceImpl implements VideoService {
      */
     @Override
     public String getMp4(String text, HttpServletRequest request) throws IOException, InterruptedException {
-//        if (text.length() > 3000) {
-//            throw new IllegalArgumentException( "输入文本不能超过3000字，请重试！");
-//        }
+        if (text.length() > 3000) {
+            throw new IllegalArgumentException( "输入文本不能超过3000字，请重试！");
+        }
+
         int userId = Integer.parseInt(request.getHeader("userId"));
         String token = redisCache.getCacheObject("token:" + userId);
         String loginUserInfo = JwtUtils.getUserInfoFromToken(token);

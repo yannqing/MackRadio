@@ -67,11 +67,11 @@ public class GlobalExceptionHandler {
         return ResultUtils.failure(Code.AUTHENTICATE_FAILURE, null, "认证失败: "+e.getMessage());
     }
 
-    @ExceptionHandler(BusinessException.class)
-    public BaseResponse businessExceptionHandler(BusinessException e) {
-        log.error("businessException: " + e.getMessage(), e);
-        return ResultUtils.failure(e.getCode(), e.getMessage());
-    }
+//    @ExceptionHandler(BusinessException.class)
+//    public BaseResponse businessExceptionHandler(BusinessException e) {
+//        log.error("businessException: " + e.getMessage(), e);
+//        return ResultUtils.failure(e.getCode(), e.getMessage());
+//    }
 
     /**
      * 系统异常
