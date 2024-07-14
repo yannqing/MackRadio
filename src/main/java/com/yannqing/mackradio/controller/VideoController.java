@@ -6,6 +6,7 @@ import com.yannqing.mackradio.utils.ResultUtils;
 import com.yannqing.mackradio.vo.BaseResponse;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,16 +16,18 @@ import java.util.concurrent.*;
 
 @RestController
 @RequestMapping("/video")
+@Slf4j
 public class VideoController {
 
     @Resource
     private VideoService videoService;
 
-    private ExecutorService executorService = new ThreadPoolExecutor(40, 1000, 10000, TimeUnit.MINUTES, new ArrayBlockingQueue<>(10000));
+    private ExecutorService executorService = new ThreadPoolExecutor(2, 10, 10000, TimeUnit.MINUTES, new ArrayBlockingQueue<>(50));
 
 
     @PostMapping("/mp4")
     public CompletableFuture<BaseResponse<String>> getMp4(String text, HttpServletRequest request) throws Exception {
+        log.info("======text:{}======", text);
 //        videoService.getMp4(text);
 //        String mp4Name = videoService.getMp4(text, request);
         return CompletableFuture.supplyAsync(() -> {

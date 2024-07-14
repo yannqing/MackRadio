@@ -276,9 +276,9 @@ public class VideoServiceImpl implements VideoService {
      */
     @Override
     public String getMp4(String text, HttpServletRequest request) throws IOException, InterruptedException {
-        if (text.length() > 3000) {
-            throw new BusinessException(Code.MESSAGE_TOO_LARGE, "输入文本不能超过3000字，请重试！");
-        }
+//        if (text.length() > 3000) {
+//            throw new IllegalArgumentException( "输入文本不能超过3000字，请重试！");
+//        }
         int userId = Integer.parseInt(request.getHeader("userId"));
         String token = redisCache.getCacheObject("token:" + userId);
         String loginUserInfo = JwtUtils.getUserInfoFromToken(token);

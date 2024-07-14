@@ -41,10 +41,10 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
             filterChain.doFilter(request,response);
             return;
         }
-        String userId2 = request.getHeader("userId");
         String token = request.getHeader("token");
-        String userId1 = request.getHeader("userId");
-        int userId = Integer.parseInt(request.getHeader("userId"));
+        String userid = request.getHeader("userId");
+        log.info("======token:{}, userId:{}======", token, userid);
+        int userId = Integer.parseInt(userid);
         if (token == null) {
             response.setStatus(500);
             response.setContentType("application/json;charset=utf-8");
