@@ -17,6 +17,8 @@ public class Code {
 
     public static final Integer AUTHENTICATE_FAILURE = 50000;       //认证失败
 
+    public static final Integer MESSAGE_TOO_LARGE = 30010;  //用户输入字符过多
+
 
 
 }

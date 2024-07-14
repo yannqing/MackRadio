@@ -7,7 +7,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yannqing.mackradio.common.Code;
 import com.yannqing.mackradio.domain.User;
+import com.yannqing.mackradio.exception.BusinessException;
 import com.yannqing.mackradio.handler.ResultHandler;
 import com.yannqing.mackradio.mapper.UserMapper;
 import com.yannqing.mackradio.service.UserService;
@@ -275,7 +277,7 @@ public class VideoServiceImpl implements VideoService {
     @Override
     public String getMp4(String text, HttpServletRequest request) throws IOException, InterruptedException {
         if (text.length() > 3000) {
-            throw new IllegalArgumentException("输入文本过长，请重试！");
+            throw new BusinessException(Code.MESSAGE_TOO_LARGE, "输入文本不能超过3000字，请重试！");
         }
         int userId = Integer.parseInt(request.getHeader("userId"));
         String token = redisCache.getCacheObject("token:" + userId);
