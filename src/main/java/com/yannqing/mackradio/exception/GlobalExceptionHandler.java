@@ -70,7 +70,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public BaseResponse businessExceptionHandler(BusinessException e) {
         log.error("businessException: " + e.getMessage(), e);
-        return ResultUtils.failure(e.getCode(), e.getMessage(), e.getDescription());
+        return ResultUtils.failure(e.getCode(), e.getMessage());
     }
 
     /**

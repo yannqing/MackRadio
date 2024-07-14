@@ -284,7 +284,6 @@ public class VideoServiceImpl implements VideoService {
         String loginUserInfo = JwtUtils.getUserInfoFromToken(token);
         User loginUser = objectMapper.readValue(loginUserInfo, User.class);
 
-//        User loginUser = new User();
         if (loginUser == null) {
             throw new IllegalStateException("未登录，请重新登录！");
         }
