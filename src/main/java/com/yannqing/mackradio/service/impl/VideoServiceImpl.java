@@ -220,6 +220,7 @@ public class VideoServiceImpl implements VideoService {
         JSONPath.set(requestData, "$.header.request_id", UUID.randomUUID());
         // 请按照需要对其他参数进行重写，本例中选择把结果音频编码格式指定为lame，即可通过主流的音频解码器播放试听
         JSONPath.set(requestData, "$.parameter.dts.audio.encoding", "lame");
+//        JSONPath.set(requestData, "$.payload.text.encoding","base64");
 
         File file = new File("./text/" + textFileName);
 //        File file = new File("C:\\Users\\67121\\video\\text\\" + textFileName);
@@ -273,7 +274,7 @@ public class VideoServiceImpl implements VideoService {
      */
     @Override
     public String getMp4(String text, HttpServletRequest request) throws IOException, InterruptedException {
-        if (text.length() > 1000) {
+        if (text.length() > 3000) {
             throw new IllegalArgumentException("输入文本过长，请重试！");
         }
         int userId = Integer.parseInt(request.getHeader("userId"));

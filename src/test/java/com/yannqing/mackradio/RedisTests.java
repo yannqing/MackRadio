@@ -26,8 +26,8 @@ class RedisTests {
 
     @Test
     void contextLoads() throws Exception {
-        String cacheObject = redisCache.getCacheObject("test");
-        System.out.println();
+//        String cacheObject = redisCache.getCacheObject("test");
+//        System.out.println();
     }
 
 

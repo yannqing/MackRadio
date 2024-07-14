@@ -2,6 +2,10 @@ spring:
   application:
     name: MackRadio
   datasource:
+    hikari:
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      idle-timeout: 1200000
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://212.64.18.207:3306/video
     username: root
