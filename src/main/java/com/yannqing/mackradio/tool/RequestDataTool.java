@@ -38,7 +38,7 @@ public class RequestDataTool {
         // 这里给出协议的整体，需要修改的参数值可以先给xxx，之后再通过JSONPath重写即可
             return "{\n" +
                     "    \"header\":{\n" +
-                    "        \"app_id\":\"d905bce2\",\n" +
+                    "        \"app_id\":\"xxx\",\n" +
                     "        \"callback_url\":\"https://api-dx.xf-yun.com/v1/private/dts_create\",\n" +
                     "        \"request_id\":\"xxx\"\n" +
                     "    },\n" +

@@ -1,11 +1,13 @@
 package com.yannqing.mackradio.service.impl;
 
+import cn.hutool.core.date.StopWatch;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yannqing.mackradio.domain.User;
 import com.yannqing.mackradio.handler.ResultHandler;
@@ -57,9 +59,9 @@ public class VideoServiceImpl implements VideoService {
     private ObjectMapper objectMapper;
 
     // 关键参数
-    private static final String APP_ID = "d905bce2";
-    private static final String API_KEY = "41ba89296a766cf4ade99a43141717ec";
-    private static final String API_SECRET = "OGJmNTY2MjFiZmEzMGU4MDdlNTc4MWVm";
+    private static final String APP_ID = "d197c215";
+    private static final String API_KEY = "ae92bd51bbce5d485e29c00d814bb2a1";
+    private static final String API_SECRET = "ZDA2ZWQyYzdiNjE2NjQ5NjY0NzE5YTQ1";
 
     String textFilePath = "./text/";
     String textFileName = "";
@@ -85,11 +87,12 @@ public class VideoServiceImpl implements VideoService {
      * @throws IOException
      */
     public void getMp3(String text, String name) throws IOException, InterruptedException {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
         AppClient appClient = new AppClient(API_KEY, API_SECRET);
 
         // 1.创建任务
         String createUrl = RequestDataTool.getCreateUrl();
-        String createRequestJsonStr = RequestDataTool.getCreateRequestJsonStr();
         String rawCreateRequestJsonStr = RequestDataTool.getCreateRequestJsonStr();
         // 重构requestData内容,对具体参数重写
         String createRequestData = buildCreateRequestData(JSONObject.parseObject(rawCreateRequestJsonStr));
@@ -134,13 +137,14 @@ public class VideoServiceImpl implements VideoService {
             if (taskStatus == 5) {
                 // 处理结果数据
                 ResultHandler.respDataPostProcess(queryRespObj);
+                stopWatch.stop();
+                log.info("讯飞语音生成耗时：{}", stopWatch.getTotalTimeMillis());
 //                nameToWav();
                 //将生成的lame文件转为wav
                 toWav(taskId);
                 //给wav文件配背景音乐
-                String randomBackgroundMusic = getRandomBackgroundMusic();
-                String audioPath = "./music/" + UUID.randomUUID().toString() + ".wav";
-                mergeBackground("./music/" + taskId + ".wav", randomBackgroundMusic, audioPath);
+                String audioPath = "./music/" + UUID.randomUUID() + ".wav";
+                mergeBackground("./music/" + taskId + ".wav", audioPath);
                 //合成视频
                 String srtFilePath = "./srt/" + UUID.randomUUID() + ".srt";
                 String radioPath = "./video/" + UUID.randomUUID() + ".mp4";
@@ -272,44 +276,40 @@ public class VideoServiceImpl implements VideoService {
      */
     @Override
     public String getMp4(String text, HttpServletRequest request) throws IOException, InterruptedException {
+        StopWatch totalWatch = new StopWatch();
+        totalWatch.start();
         if (text.length() > 3000) {
-            throw new IllegalArgumentException( "输入文本不能超过3000字，请重试！");
+            //异常抛出，如需修改文字，注意修改全局异常！
+            throw new RuntimeException( "输入文本不能超过3000字，请重试！");
         }
-
-        int userId = Integer.parseInt(request.getHeader("userId"));
-        String token = redisCache.getCacheObject("token:" + userId);
-        String loginUserInfo = JwtUtils.getUserInfoFromToken(token);
-        User loginUser = objectMapper.readValue(loginUserInfo, User.class);
-
+        User loginUser = getLoginUser(request);
         if (loginUser == null) {
             throw new IllegalStateException("未登录，请重新登录！");
         }
-
         if (loginUser.getAccessTimes() <= 0) {
             throw new IllegalArgumentException("您的可访问次数不足，请重试！");
         }
-
         log.info("生成txt文件开始");
         stringToText(text);
-        log.info("生成txt文件结束");
         String name = UUID.randomUUID() + ".mp4";
         getMp3(text, name);
 
         //用户可访问次数-1
         userService.update(new UpdateWrapper<User>().eq("id", loginUser.getId()).set("accessTimes", loginUser.getAccessTimes() - 1));
         log.info("返回成功！");
+        totalWatch.stop();
+        log.info("总耗时：{}", totalWatch.getTotalTimeMillis());
         return name;
     }
 
     @Override
     public void change(String text, String srtFilePath, String audioPath, String radioPath, String shPath, String outputPath, String imagePath) {
-
+        StopWatch stopWatch = new StopWatch();
         //断句
         List<String> sentences = splitSentencesFromFile(text);
-        log.info("开始生成图片");
         List<String> picture = getPicture(text);
         log.info(picture.toString());
-        log.info("结束生成图片");
+        stopWatch.start();
         try {
             List<BufferedImage> images = loadImages(picture);
             
@@ -337,6 +337,7 @@ public class VideoServiceImpl implements VideoService {
             List<Integer> durations = calculateDurations(sentences, (int) durationInMillis);
             log.info("计算每句字幕的时长：{}", durations);
 
+            //---------
             try {
                 generateSrtFile(sentences, durations, srtFilePath);
             } catch (IOException e) {
@@ -406,10 +407,14 @@ public class VideoServiceImpl implements VideoService {
             e.printStackTrace();
         }
         log.info("视频生成成功！");
+        stopWatch.stop();
+        log.info("无字幕视频生成耗时：{}", stopWatch.getTotalTimeMillis());
 
         //给视频添加字幕
+        stopWatch.start();
         mergeSRT(radioPath, outputPath, srtFilePath);
-
+        stopWatch.stop();
+        log.info("视频添加字幕耗时：{}", stopWatch.getTotalTimeMillis());
     }
 
     /**
@@ -493,6 +498,7 @@ public class VideoServiceImpl implements VideoService {
      * @throws IOException
      */
     private void generateSrtFile(List<String> subtitles, List<Integer> durations, String fileName) throws IOException {
+        log.info("开始生成srt字幕文件");
         BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
         int currentTime = 0;
 
@@ -516,6 +522,7 @@ public class VideoServiceImpl implements VideoService {
         }
 
         writer.close();
+        log.info("结束生成srt字幕文件");
     }
 
     /**
@@ -524,6 +531,9 @@ public class VideoServiceImpl implements VideoService {
      * @return
      */
     public List<String> getPicture(String content) {
+        log.info("开始生成图片");
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
         // Replace with your Personal_Access_Token, Bot_Id, and UserId
         String personalAccessToken = "pat_GBSt86m4MdawUCdecLg4Z00crnLzY8U0bhTBFoMCZK6WkMGAA6f30W1CYh95l9fD";
         String botId = "7389169608911241254";
@@ -585,7 +595,9 @@ public class VideoServiceImpl implements VideoService {
         List pictureList = new ArrayList<>(); //存放图片地址
         //轮询获取内容响应
         pollForImages(conversationId, chatId, personalAccessToken, content,pictureList);
-
+        stopWatch.stop();
+        log.info("结束生成图片");
+        log.info("生成图片总耗时：{}", stopWatch.getTotalTimeMillis());
         return pictureList;
     }
 
@@ -687,6 +699,8 @@ public class VideoServiceImpl implements VideoService {
      * @param text
      */
     public void stringToText(String text) {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
         String name = UUID.randomUUID().toString();
         textFileName = name + ".txt";
         String filePath = textFilePath + textFileName;
@@ -698,6 +712,8 @@ public class VideoServiceImpl implements VideoService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        stopWatch.stop();
+        log.info("生成txt文件结束, 用时：{}", stopWatch.getTotalTimeMillis());
     }
 
     /**
@@ -753,11 +769,13 @@ public class VideoServiceImpl implements VideoService {
     /**
      * 给字幕配背景音，合并为一个音频文件
      * @param voice 字幕朗读的音频文件路径
-     * @param background 背景音乐的音频文件路径
      * @param output 输出文件的音频文件路径
      */
-    public void mergeBackground(String voice, String background, String output) {
+    public void mergeBackground(String voice, String output) {
         log.info("字幕配背景音开始===");
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+        String background = getRandomBackgroundMusic();
         try {
             ProcessBuilder processBuilder = new ProcessBuilder("bash", "./merge.sh", voice, background, output);
             Process process = processBuilder.start();
@@ -797,7 +815,8 @@ public class VideoServiceImpl implements VideoService {
             int exitCode = process.waitFor();
             System.out.println("Exit code: " + exitCode);
             log.info("字幕配背景音结束===");
-
+            stopWatch.stop();
+            log.info("讯飞语音配背景音耗时：{}", stopWatch.getTotalTimeMillis());
         } catch (Exception e) {
             log.error("字幕背景音合成失败！");
             log.error(e.getMessage());
@@ -898,5 +917,12 @@ public class VideoServiceImpl implements VideoService {
 
         Duration totalDuration = Duration.between(LocalTime.MIN, maxEndTime);
         return totalDuration.getSeconds();
+    }
+
+    private User getLoginUser(HttpServletRequest request) throws JsonProcessingException {
+        int userId = Integer.parseInt(request.getHeader("userId"));
+        String token = redisCache.getCacheObject("token:" + userId);
+        String loginUserInfo = JwtUtils.getUserInfoFromToken(token);
+        return objectMapper.readValue(loginUserInfo, User.class);
     }
 }

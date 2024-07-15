@@ -48,11 +48,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public void handleRuntimeException(RuntimeException e, HttpServletRequest request, HttpServletResponse response) throws IOException {
         String requestURI = request.getRequestURI();
-        log.error("请求地址 {},异常: {}", requestURI, e);
+        log.error("请求地址 {},异常: {}", requestURI, e.getMessage());
 
-        response.setContentType("application/json;charset=UTF-8");
-        response.setStatus(500);
-        response.getWriter().write(ResultUtils.failure(e.getMessage()).toString());
+        if (e.getMessage().contains("输入文本不能超过3000字，请重试！")) {
+            response.setContentType("application/json;charset=UTF-8");
+            response.setStatus(500);
+            response.getWriter().write(ResultUtils.failure(Code.MESSAGE_TOO_LARGE, null, "输入文本不能超过3000字，请重试！").toString());
+        }else {
+            response.setContentType("application/json;charset=UTF-8");
+            response.setStatus(500);
+            response.getWriter().write(ResultUtils.failure(e.getMessage()).toString());
+        }
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
