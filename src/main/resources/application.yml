@@ -14,13 +14,14 @@ spring:
     redis:
       database: 0
       host: 127.0.0.1
-      lettuce:
+      jedis:
         pool:
+          enabled: true
           max-active: 8
           max-wait: 1
           max-idle: 8
           min-idle: 0
-      timeout: 0
+      connect-timeout: 100000
 server:
   port: 8080
   servlet:

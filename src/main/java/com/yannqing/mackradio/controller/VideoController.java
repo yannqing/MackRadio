@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.IOException;
 import java.util.concurrent.*;
 
@@ -26,25 +27,25 @@ public class VideoController {
 
 
     @PostMapping("/mp4")
-    public CompletableFuture<BaseResponse<String>> getMp4(String text, HttpServletRequest request) throws IOException, InterruptedException {
+    public BaseResponse<String> getMp4(String text, HttpServletRequest request) throws IOException, InterruptedException, UnsupportedAudioFileException {
 //        log.info("======text:{}======", text);
 //        videoService.getMp4(text);
-//        String mp4Name = videoService.getMp4(text, request);
-        CompletableFuture<BaseResponse<String>> future = CompletableFuture.supplyAsync(() -> {
-                    try {
-                        String mp4Name = videoService.getMp4(text, request);
-                        return mp4Name;
-                    } catch (IOException | InterruptedException e) {
-                        log.error("Failed to get");
-                        throw new RuntimeException(e.getMessage());
-                    }
-                }, executorService)
-                .thenApply(mp4Name -> ResultUtils.success(Code.SUCCESS, mp4Name, "生成成功！"))
-                .exceptionally(ex -> {
-                    throw new RuntimeException(ex.getMessage());
-                });
-        future.join();
-        return future;
-//        return ResultUtils.success(Code.SUCCESS, mp4Name, "生成成功！");
+        String mp4Name = videoService.getMp4(text, request);
+//        CompletableFuture<BaseResponse<String>> future = CompletableFuture.supplyAsync(() -> {
+//                    try {
+//                        String mp4Name = videoService.getMp4(text, request);
+//                        return mp4Name;
+//                    } catch (IOException | InterruptedException e) {
+//                        log.error("Failed to get");
+//                        throw new RuntimeException(e.getMessage());
+//                    }
+//                }, executorService)
+//                .thenApply(mp4Name -> ResultUtils.success(Code.SUCCESS, mp4Name, "生成成功！"))
+//                .exceptionally(ex -> {
+//                    throw new RuntimeException(ex.getMessage());
+//                });
+//        future.join();
+//        return future;
+        return ResultUtils.success(Code.SUCCESS, mp4Name, "生成成功！");
     }
 }

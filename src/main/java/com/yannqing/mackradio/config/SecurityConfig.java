@@ -2,9 +2,7 @@ package com.yannqing.mackradio.config;
 
 import com.yannqing.mackradio.common.Constant;
 import com.yannqing.mackradio.security.filter.JwtAuthenticationTokenFilter;
-import com.yannqing.mackradio.security.handler.MyLoginFailureHandler;
-import com.yannqing.mackradio.security.handler.MyLoginSuccessHandler;
-import com.yannqing.mackradio.security.handler.MyLogoutSuccessHandler;
+import com.yannqing.mackradio.security.handler.*;
 import com.yannqing.mackradio.utils.RedisCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -16,7 +14,9 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @EnableWebSecurity
@@ -25,6 +25,12 @@ public class SecurityConfig {
 
     @Autowired
     private RedisCache redisCache;
+
+    @Autowired
+    private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+
+    @Autowired
+    private CustomAccessDeniedHandler customAccessDeniedHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -56,9 +62,13 @@ public class SecurityConfig {
                 .logoutUrl("/user/logout")
                 .logoutSuccessHandler(new MyLogoutSuccessHandler(redisCache))
         );
-
         //关闭跨域拦截--适用于前后端分离，另创建跨域拦截的类
         http.cors(Customizer.withDefaults());
+        //配置异常处理
+        http.exceptionHandling(exceptionHandling -> exceptionHandling
+                .authenticationEntryPoint(customAuthenticationEntryPoint)
+                .accessDeniedHandler(customAccessDeniedHandler)
+        );
 
 
         return http.build();

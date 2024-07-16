@@ -16,4 +16,10 @@ class VideoServiceTest {
     void getRandomBackgroundMusic() {
         System.out.println(videoService.getRandomBackgroundMusic());
     }
+
+
+    @Test
+    void mergeBackground() {
+//        videoService.mergeBackground("C:\\Users\\67121\\video\\music\\240715134948202114208918.wav", "C:\\Users\\67121\\video\\background\\m3.mp3", "C:\\Users\\67121\\video\\test.wav");
+    }
 }

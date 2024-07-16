@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yannqing.mackradio.domain.User;
+import com.yannqing.mackradio.exception.BusinessException;
 import com.yannqing.mackradio.handler.ResultHandler;
 import com.yannqing.mackradio.mapper.UserMapper;
 import com.yannqing.mackradio.service.UserService;
@@ -86,7 +87,7 @@ public class VideoServiceImpl implements VideoService {
      * @param name
      * @throws IOException
      */
-    public void getMp3(String text, String name) throws IOException, InterruptedException {
+    public void getMp3(String text, String name) throws IOException, InterruptedException, UnsupportedAudioFileException {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         AppClient appClient = new AppClient(API_KEY, API_SECRET);
@@ -105,7 +106,7 @@ public class VideoServiceImpl implements VideoService {
             if((int)code != 0) {
                 // 创建任务失败，打印报错后中止
                 log.error("create task failed, code = {}, message = {}", code, JSONPath.eval(createRespObj, "$.header.message"));
-                return ;
+                throw new IllegalArgumentException("讯飞创建任务失败，请重试");
             }
         }
 
@@ -130,6 +131,7 @@ public class VideoServiceImpl implements VideoService {
             if (qryCode != null) {
                 if ((int) qryCode != 0) {
                     log.error("query task failed, code = {}, message = {}", qryCode, JSONPath.eval(queryRespObj, "$.header.message"));
+                    throw new IllegalArgumentException("query task failed");
                 }
             }
             // 判断任务状态
@@ -144,7 +146,8 @@ public class VideoServiceImpl implements VideoService {
                 toWav(taskId);
                 //给wav文件配背景音乐
                 String audioPath = "./music/" + UUID.randomUUID() + ".wav";
-                mergeBackground("./music/" + taskId + ".wav", audioPath);
+                String background = getRandomBackgroundMusic();
+                mergeBackground("./music/" + taskId + ".wav", background, audioPath);
                 //合成视频
                 String srtFilePath = "./srt/" + UUID.randomUUID() + ".srt";
                 String radioPath = "./video/" + UUID.randomUUID() + ".mp4";
@@ -157,13 +160,13 @@ public class VideoServiceImpl implements VideoService {
                         "./image/"
                 );
                 // 任务完成，关闭调度器
-//                SCHEDULER.shutdown();
+                // SCHEDULER.shutdown();
                 break;
             }
             Thread.sleep(5 * 1000);
         }
 
-
+        long l = System.currentTimeMillis();
     }
 
     /**
@@ -275,7 +278,7 @@ public class VideoServiceImpl implements VideoService {
      * @throws InterruptedException
      */
     @Override
-    public String getMp4(String text, HttpServletRequest request) throws IOException, InterruptedException {
+    public String getMp4(String text, HttpServletRequest request) throws IOException, InterruptedException, IllegalArgumentException, UnsupportedAudioFileException {
         StopWatch totalWatch = new StopWatch();
         totalWatch.start();
         if (text.length() > 3000) {
@@ -303,14 +306,13 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
-    public void change(String text, String srtFilePath, String audioPath, String radioPath, String shPath, String outputPath, String imagePath) {
+    public void change(String text, String srtFilePath, String audioPath, String radioPath, String shPath, String outputPath, String imagePath) throws IOException, UnsupportedAudioFileException, InterruptedException {
         StopWatch stopWatch = new StopWatch();
         //断句
         List<String> sentences = splitSentencesFromFile(text);
         List<String> picture = getPicture(text);
         log.info(picture.toString());
         stopWatch.start();
-        try {
             List<BufferedImage> images = loadImages(picture);
             
             int frameWidth = 1088; // 设置帧宽度
@@ -319,30 +321,14 @@ public class VideoServiceImpl implements VideoService {
             // 加载音频文件
             log.info("加载音频文件开始");
             File audioFile = new File(audioPath);
-            if (!audioFile.exists()) {
-                throw new FileNotFoundException("音频文件不存在：" + audioFile.getAbsolutePath());
-            }
-
-            AudioInputStream audioInputStream;
-            try {
-                audioInputStream = AudioSystem.getAudioInputStream(audioFile);
-            } catch (UnsupportedAudioFileException | IOException e) {
-                e.printStackTrace();
-                throw new IOException("无法加载音频文件：" + e.getMessage());
-            }
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(audioFile);
             log.info("加载音频文件结束");
             //获取wav文件的总时长
             long durationInMillis = getWavDuration(new File(audioPath));
             log.info("获取音频文件总时长成功：{}", durationInMillis);
             List<Integer> durations = calculateDurations(sentences, (int) durationInMillis);
             log.info("计算每句字幕的时长：{}", durations);
-
-            //---------
-            try {
-                generateSrtFile(sentences, durations, srtFilePath);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            generateSrtFile(sentences, durations, srtFilePath);
             log.info("生成字幕文件srt成功！");
 
             //初始化视频
@@ -401,11 +387,7 @@ public class VideoServiceImpl implements VideoService {
             }
 
             // 完成视频编码
-            recorder.stop(); recorder.release();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        recorder.stop(); recorder.release();
         log.info("视频生成成功！");
         stopWatch.stop();
         log.info("无字幕视频生成耗时：{}", stopWatch.getTotalTimeMillis());
@@ -422,11 +404,9 @@ public class VideoServiceImpl implements VideoService {
      * @param radioPath 原mp4路径
      * @param outputPath 生成的mp4路径
      */
-    public void mergeSRT(String radioPath, String outputPath, String srtFilePath) {
+    public void mergeSRT(String radioPath, String outputPath, String srtFilePath) throws IOException, InterruptedException {
         log.info("=======字幕合成开始========");
-        String name = "";
-        try {
-            name = UUID.randomUUID().toString();
+        String name =  UUID.randomUUID().toString();
             ProcessBuilder processBuilder = new ProcessBuilder("bash", "./main.sh", srtFilePath, radioPath, outputPath);
             Process process = processBuilder.start();
 
@@ -442,7 +422,7 @@ public class VideoServiceImpl implements VideoService {
                         System.out.println("Output: " + line);
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    throw new IllegalArgumentException(e.getMessage());
                 }
             });
 
@@ -453,7 +433,8 @@ public class VideoServiceImpl implements VideoService {
                         System.err.println("Error: " + line);
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    throw new IllegalArgumentException(e.getMessage());
+
                 }
             });
 
@@ -464,11 +445,9 @@ public class VideoServiceImpl implements VideoService {
 // 等待外部进程执行完成
             int exitCode = process.waitFor();
             System.out.println("Exit code: " + exitCode);
-        } catch (Exception e) {
-            log.error("字幕合成失败！");
-            log.error(e.getMessage());
-            e.printStackTrace();
-        }
+            if (exitCode != 0) {
+                throw new IllegalArgumentException("字幕合成视频失败");
+            }
         log.info("=======字幕合成结束========");
     }
 
@@ -720,8 +699,7 @@ public class VideoServiceImpl implements VideoService {
      * 将lame文件转为wav
      * @param name
      */
-    public void toWav(String name) {
-        try {
+    public void toWav(String name) throws IOException, InterruptedException {
             ProcessBuilder processBuilder = new ProcessBuilder("bash", "./toWav.sh", "./music/" + name + ".lame", "./music/" + name + ".wav");
             Process process = processBuilder.start();
 
@@ -737,7 +715,7 @@ public class VideoServiceImpl implements VideoService {
                         System.out.println("Output: " + line);
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    throw new IllegalArgumentException("音频文件lame->wav转换失败");
                 }
             });
 
@@ -748,7 +726,7 @@ public class VideoServiceImpl implements VideoService {
                         System.err.println("Error: " + line);
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    throw new IllegalArgumentException("音频文件lame->wav转换失败");
                 }
             });
 
@@ -758,12 +736,10 @@ public class VideoServiceImpl implements VideoService {
 
 // 等待外部进程执行完成
             int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                throw new IllegalArgumentException("音频转换脚本执行失败");
+            }
             System.out.println("Exit code: " + exitCode);
-        } catch (Exception e) {
-            log.error("字幕合成失败！");
-            log.error(e.getMessage());
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -771,12 +747,10 @@ public class VideoServiceImpl implements VideoService {
      * @param voice 字幕朗读的音频文件路径
      * @param output 输出文件的音频文件路径
      */
-    public void mergeBackground(String voice, String output) {
+    public void mergeBackground(String voice, String background, String output) throws InterruptedException, IOException {
         log.info("字幕配背景音开始===");
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        String background = getRandomBackgroundMusic();
-        try {
             ProcessBuilder processBuilder = new ProcessBuilder("bash", "./merge.sh", voice, background, output);
             Process process = processBuilder.start();
 
@@ -792,7 +766,7 @@ public class VideoServiceImpl implements VideoService {
                         System.out.println("Output: " + line);
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    throw new IllegalArgumentException("字幕音频配音失败！");
                 }
             });
 
@@ -803,7 +777,7 @@ public class VideoServiceImpl implements VideoService {
                         System.err.println("Error: " + line);
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    throw new IllegalArgumentException("字幕音频配音失败！");
                 }
             });
 
@@ -813,15 +787,13 @@ public class VideoServiceImpl implements VideoService {
 
 // 等待外部进程执行完成
             int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                throw new IllegalArgumentException("字幕音配背景音脚本执行失败！");
+            }
             System.out.println("Exit code: " + exitCode);
             log.info("字幕配背景音结束===");
             stopWatch.stop();
             log.info("讯飞语音配背景音耗时：{}", stopWatch.getTotalTimeMillis());
-        } catch (Exception e) {
-            log.error("字幕背景音合成失败！");
-            log.error(e.getMessage());
-            e.printStackTrace();
-        }
     }
 
     private List<BufferedImage> loadImages(List<String> directoryPath) throws IOException {
@@ -851,8 +823,7 @@ public class VideoServiceImpl implements VideoService {
      * @param recorder
      * @param frameDuration
      */
-    private void addAudioSegment(AudioInputStream audioInputStream, FFmpegFrameRecorder recorder, double frameDuration) {
-        try {
+    private void addAudioSegment(AudioInputStream audioInputStream, FFmpegFrameRecorder recorder, double frameDuration) throws IOException {
             // 计算每帧的采样数
             int sampleRate = (int) audioInputStream.getFormat().getSampleRate();
             int numSamples = (int) (sampleRate * frameDuration);
@@ -883,9 +854,6 @@ public class VideoServiceImpl implements VideoService {
                 // 记录音频帧
                 recorder.record(audioFrame);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     /**

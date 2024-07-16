@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yannqing.mackradio.common.Code;
 import com.yannqing.mackradio.common.Constant;
 import com.yannqing.mackradio.domain.User;
+import com.yannqing.mackradio.exception.BusinessException;
 import com.yannqing.mackradio.utils.JwtUtils;
 import com.yannqing.mackradio.utils.RedisCache;
 import com.yannqing.mackradio.utils.ResultUtils;
@@ -53,7 +54,12 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
         }
         //验证token的合法性，不报错即合法
 
-        String redisToken = redisCache.getCacheObject("token:" + userId);
+        String redisToken = null;
+        try {
+            redisToken = redisCache.getCacheObject("token:" + userId);
+        } catch (Exception e) {
+            throw new BusinessException("redis异常，请重试 ：by yannqing");
+        }
 
         if (redisToken==null) {
             response.setStatus(500);

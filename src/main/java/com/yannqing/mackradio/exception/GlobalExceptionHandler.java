@@ -10,6 +10,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 
@@ -39,6 +40,26 @@ public class GlobalExceptionHandler {
                                                                     HttpServletRequest request) {
         String requestURI = request.getRequestURI();
         log.error("请求地址 {},不支持 {} 请求", requestURI, e.getMethod());
+        return ResultUtils.failure(e.getMessage());
+    }
+
+    /**
+     * 文件不存在
+     */
+    @ExceptionHandler(FileNotFoundException.class)
+    public BaseResponse<Object> handleFileNotFoundException(FileNotFoundException e,
+                                                                    HttpServletRequest request) {
+        log.error("文件未找到：{}", e.getMessage());
+        return ResultUtils.failure(e.getMessage());
+    }
+
+    /**
+     * 文件不存在
+     */
+    @ExceptionHandler(IOException.class)
+    public BaseResponse<Object> handleIOException(IOException e,
+                                                                    HttpServletRequest request) {
+        log.error("文件加载失败：{}", e.getMessage());
         return ResultUtils.failure(e.getMessage());
     }
 
@@ -73,11 +94,11 @@ public class GlobalExceptionHandler {
         return ResultUtils.failure(Code.AUTHENTICATE_FAILURE, null, "认证失败: "+e.getMessage());
     }
 
-//    @ExceptionHandler(BusinessException.class)
-//    public BaseResponse businessExceptionHandler(BusinessException e) {
-//        log.error("businessException: " + e.getMessage(), e);
-//        return ResultUtils.failure(e.getCode(), e.getMessage());
-//    }
+    @ExceptionHandler(BusinessException.class)
+    public BaseResponse businessExceptionHandler(BusinessException e) {
+        log.error("错误: {}", e.getMessage());
+        return ResultUtils.failure(e.getCode(), e.getMessage());
+    }
 
     /**
      * 系统异常
