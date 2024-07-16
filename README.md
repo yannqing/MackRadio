@@ -95,7 +95,7 @@ output_path="$3"
 
 ### 修改权限校验方式
 
-> 权限校验：spring session redis -> spring security + jwt + redis
+> 权限校验：spring session redis -> [spring security + jwt + redis](https://yannqing.com/posts/java/springsecurity)
 
 
 

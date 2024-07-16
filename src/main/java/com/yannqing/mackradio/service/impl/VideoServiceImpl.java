@@ -41,6 +41,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -573,6 +574,8 @@ public class VideoServiceImpl implements VideoService {
 //        Thread.sleep(10000);
         List pictureList = new ArrayList<>(); //存放图片地址
         //轮询获取内容响应
+
+
         pollForImages(conversationId, chatId, personalAccessToken, content,pictureList);
         stopWatch.stop();
         log.info("结束生成图片");
@@ -594,41 +597,45 @@ public class VideoServiceImpl implements VideoService {
                 .header("Content-Type", "application/json");
 
         boolean finished = false;
+
+        //设置超时时间
+        Instant startTime = Instant.now(); // 记录循环开始时间
+        Duration timeout = Duration.ofMinutes(8); // 设置超时时间为8分钟
         while (!finished) {
-            try {
-                HttpResponse getResponse = getRequest.execute();
-                getResponse.charset("UTF-8");
-                String responseBody = getResponse.body();
-                System.out.println(responseBody);
-                // 解析响应内容
-                cn.hutool.json.JSONObject jsonResponse = new cn.hutool.json.JSONObject(responseBody);
-                if (jsonResponse.getInt("code") == 0) {
-                    JSONArray data = jsonResponse.getJSONArray("data");
-                    if (data != null) {
-                        cn.hutool.json.JSONObject message = data.getJSONObject(data.size() - 1);
-                        if (message.containsKey("content")) {
-                            String content = message.getStr("content");
-                            // 检查内容中是否包含图片地址
-                            if (message.containsKey("type")){
-                                String answerType = message.getStr("type");
-                                if (answerType.equals("answer") && content.contains("[Image")){
-                                    // 提取图片地址
-                                    extractImageUrls(content,pictureList);
-                                    finished = true; //轮询结束标识
-                                }else if (!"function_call".equals(answerType)){
-                                    // 如果不是，则模型未生成图片,重新调用
-                                    getPicture(text);
-                                    finished = true; //轮询结束标识
-                                }
+            // 检查是否超过10分钟
+            if (Duration.between(startTime, Instant.now()).compareTo(timeout) > 0) {
+                throw new RuntimeException("图片生成超时，请重试。");
+            }
+            HttpResponse getResponse = getRequest.execute();
+            getResponse.charset("UTF-8");
+            String responseBody = getResponse.body();
+            System.out.println(responseBody);
+            // 解析响应内容
+            cn.hutool.json.JSONObject jsonResponse = new cn.hutool.json.JSONObject(responseBody);
+            if (jsonResponse.getInt("code") == 0) {
+                JSONArray data = jsonResponse.getJSONArray("data");
+                if (data != null) {
+                    cn.hutool.json.JSONObject message = data.getJSONObject(data.size() - 1);
+                    if (message.containsKey("content")) {
+                        String content = message.getStr("content");
+                        // 检查内容中是否包含图片地址
+                        if (message.containsKey("type")){
+                            String answerType = message.getStr("type");
+                            if (answerType.equals("answer") && content.contains("[Image")){
+                                // 提取图片地址
+                                extractImageUrls(content,pictureList);
+                                finished = true; //轮询结束标识
+                            }else if (!"function_call".equals(answerType)){
+                                // 如果不是，则模型未生成图片,重新调用
+                                getPicture(text);
+                                finished = true; //轮询结束标识
                             }
                         }
                     }
-                } else {
-                    System.out.println("Error occurred: " + jsonResponse.getStr("msg"));
-                    finished = true; // 如果发生错误，结束轮询
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+            } else {
+                System.out.println("Error occurred: " + jsonResponse.getStr("msg"));
+                finished = true; // 如果发生错误，结束轮询
             }
 
             try {
