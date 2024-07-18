@@ -1,5 +1,6 @@
 package com.yannqing.mackradio.config;
 
+import com.yannqing.mackradio.handler.MeWebSocketHandler;
 import com.yannqing.mackradio.handler.MyWebSocketHandler;
 import jakarta.annotation.Resource;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +14,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new MyWebSocketHandler(), "/ws");
+        registry.addHandler(new MyWebSocketHandler(), "/ws").setAllowedOrigins("*");
     }
 }

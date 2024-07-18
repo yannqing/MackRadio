@@ -19,7 +19,8 @@ public class Constant {
     public static String[] annos = {
             "/user/register",
             "/user/login",
-            "/user/logout"
+            "/user/logout",
+            "/ws"
     };
     public static List<String> annosList = Arrays.asList(annos);
 
