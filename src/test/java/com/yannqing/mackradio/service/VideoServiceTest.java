@@ -4,6 +4,11 @@ import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -20,6 +25,11 @@ class VideoServiceTest {
 
     @Test
     void mergeBackground() {
-//        videoService.mergeBackground("C:\\Users\\67121\\video\\music\\240715134948202114208918.wav", "C:\\Users\\67121\\video\\background\\m3.mp3", "C:\\Users\\67121\\video\\test.wav");
+    }
+
+    @Test
+    void writeListToFile() throws IOException {
+//        List<String> list = Arrays.asList("line1", "line2", "line3", "line4");
+//        videoService.writeListToFile(list, "./background/" + UUID.randomUUID() + ".txt");
     }
 }

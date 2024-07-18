@@ -26,11 +26,13 @@ public class VideoController {
     private ExecutorService executorService = new ThreadPoolExecutor(2, 10, 10000, TimeUnit.MINUTES, new ArrayBlockingQueue<>(50));
 
 
-    @PostMapping("/mp4")
+    @PostMapping("/mp4ByJava")
     public BaseResponse<String> getMp4(String text, HttpServletRequest request) throws IOException, InterruptedException, UnsupportedAudioFileException {
 //        log.info("======text:{}======", text);
 //        videoService.getMp4(text);
-        String mp4Name = videoService.getMp4(text, request);
+        long start = System.currentTimeMillis();
+        String mp4Name = videoService.getMp4Byjava(text, request);
+        long end = System.currentTimeMillis();
 //        CompletableFuture<BaseResponse<String>> future = CompletableFuture.supplyAsync(() -> {
 //                    try {
 //                        String mp4Name = videoService.getMp4(text, request);
@@ -46,6 +48,31 @@ public class VideoController {
 //                });
 //        future.join();
 //        return future;
-        return ResultUtils.success(Code.SUCCESS, mp4Name, "生成成功！");
+        return ResultUtils.success(Code.SUCCESS, mp4Name, "生成成功！" + (end - start));
+    }
+
+    @PostMapping("/mp4")
+    public BaseResponse<String> getMp42(String text, HttpServletRequest request) throws IOException, InterruptedException, UnsupportedAudioFileException {
+//        log.info("======text:{}======", text);
+//        videoService.getMp4(text);
+        long start = System.currentTimeMillis();
+        String mp4Name = videoService.getMp4(text, request);
+        long end = System.currentTimeMillis();
+//        CompletableFuture<BaseResponse<String>> future = CompletableFuture.supplyAsync(() -> {
+//                    try {
+//                        String mp4Name = videoService.getMp4(text, request);
+//                        return mp4Name;
+//                    } catch (IOException | InterruptedException e) {
+//                        log.error("Failed to get");
+//                        throw new RuntimeException(e.getMessage());
+//                    }
+//                }, executorService)
+//                .thenApply(mp4Name -> ResultUtils.success(Code.SUCCESS, mp4Name, "生成成功！"))
+//                .exceptionally(ex -> {
+//                    throw new RuntimeException(ex.getMessage());
+//                });
+//        future.join();
+//        return future;
+        return ResultUtils.success(Code.SUCCESS, mp4Name, "生成成功！" + String.valueOf(end - start));
     }
 }
