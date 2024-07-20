@@ -1,8 +1,6 @@
 package com.yannqing.mackradio.config;
 
-import com.yannqing.mackradio.handler.MeWebSocketHandler;
-import com.yannqing.mackradio.handler.MyWebSocketHandler;
-import jakarta.annotation.Resource;
+import com.yannqing.mackradio.security.handler.MyWebSocketHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;

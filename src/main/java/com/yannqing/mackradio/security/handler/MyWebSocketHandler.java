@@ -1,4 +1,4 @@
-package com.yannqing.mackradio.handler;
+package com.yannqing.mackradio.security.handler;
 
 import cn.hutool.core.date.StopWatch;
 import cn.hutool.http.HttpRequest;
@@ -12,7 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yannqing.mackradio.common.Code;
 import com.yannqing.mackradio.domain.User;
-import com.yannqing.mackradio.mapper.UserMapper;
+import com.yannqing.mackradio.handler.ResultHandler;
 import com.yannqing.mackradio.service.UserService;
 import com.yannqing.mackradio.tool.AppClient;
 import com.yannqing.mackradio.tool.RequestDataTool;
@@ -20,10 +20,8 @@ import com.yannqing.mackradio.utils.JwtUtils;
 import com.yannqing.mackradio.utils.RedisCache;
 import com.yannqing.mackradio.utils.ResultUtils;
 import jakarta.annotation.Resource;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.bytedeco.javacv.Java2DFrameConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
@@ -44,8 +42,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Component
 @Slf4j
+@Component
 public class MyWebSocketHandler extends TextWebSocketHandler {
 
     // 关键参数
@@ -60,7 +58,6 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
     private UserService userService;
     @Resource
     private ObjectMapper objectMapper;
-    private Java2DFrameConverter converter;
     @Autowired
     private RedisCache redisCache;
 

@@ -29,3 +29,8 @@ server:
       cookie:
         domain: localhost
         http-only: false
+      timeout: 60m
+  tomcat:
+    connection-timeout: 60000
+    threads:
+      max: 200
