@@ -57,9 +57,9 @@ import java.util.regex.Pattern;
 public class VideoServiceImpl implements VideoService {
 
     // 关键参数
-    private static final String APP_ID = "d197c215";
-    private static final String API_KEY = "ae92bd51bbce5d485e29c00d814bb2a1";
-    private static final String API_SECRET = "ZDA2ZWQyYzdiNjE2NjQ5NjY0NzE5YTQ1";
+    private static final String APP_ID = "16f4c37a";
+    private static final String API_KEY = "7ac0ad045b2b169e7356ed97c05e0afb";
+    private static final String API_SECRET = "ZDJhOWVhZDQxMjMyMTc3OWY4OTJiMjBl";
     private final Duration timeout = Duration.ofMinutes(6); // 设置超时时间为8分钟
     String textFilePath = "./text/";
     String textFileName = "";
