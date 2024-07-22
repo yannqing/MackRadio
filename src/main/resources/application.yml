@@ -1,6 +1,8 @@
 spring:
   application:
     name: MackRadio
+  profiles:
+    active: dev
   datasource:
     hikari:
       max-lifetime: 1800000
