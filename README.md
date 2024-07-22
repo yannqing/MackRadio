@@ -1,5 +1,12 @@
 # 文字生成视频 TTV（Text to Video）
 
+## 效果展示：
+
+![登录](https://blogback.yannqing.com/api/v2/objects/file/ikc31rhd610f06zu28.png)
+
+![主页](https://blogback.yannqing.com/api/v2/objects/file/sv7hhcru0xuuwh76oa.png)
+
+
 > ps：简单AI第一版迭代过程
 
 ## v1.0
