@@ -124,6 +124,11 @@ public class VideoServiceImpl implements VideoService {
         JSONObject createRespObj = JSONObject.parseObject(createResp);
         Object code = JSONPath.eval(createRespObj, "$.header.code");
         if (code != null) {
+            if ((int) code == 11200) {
+                // 创建任务失败，打印报错后中止
+                log.error("create task failed, code = {}, message = {}", code, JSONPath.eval(createRespObj, "$.header.message"));
+                throw new IllegalArgumentException("讯飞tokens达到限制，请更换用户api或者购买套餐！");
+            }
             if ((int) code != 0) {
                 // 创建任务失败，打印报错后中止
                 log.error("create task failed, code = {}, message = {}", code, JSONPath.eval(createRespObj, "$.header.message"));
