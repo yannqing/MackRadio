@@ -183,6 +183,9 @@ public class VideoServiceImpl implements VideoService {
                 //生成图片：
                 startTime = Instant.now();
                 List<String> picture = getPicture(text);
+                if (picture.isEmpty()) {
+                    throw new IllegalArgumentException("生成图片数量为0，无法继续进行！");
+                }
                 log.info("图片生成成功：{}", picture.toString());
                 log.info("图片生成耗时：{}", Duration.between(startTime, Instant.now()));
                 //断句
