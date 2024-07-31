@@ -7,13 +7,13 @@ spring:
       connection-timeout: 30000
       idle-timeout: 1200000
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://mysql:3306/video
+    url: jdbc:mysql://127.0.0.1:3306/video
     username: root
     password: wyjh030208..
   data:
     redis:
       database: 0
-      host: mackRedis
+      host: 127.0.0.1
       jedis:
         pool:
           enabled: true
