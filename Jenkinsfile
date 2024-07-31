@@ -46,8 +46,8 @@ pipeline {
         stage('构建镜像，创建并运行容器') {
             steps {
                 // 基于 Dockerfile 进行构建
-                sh "docker build -f Dockerfile.dockerfile -t macksimpleai:latest ."
-                sh "docker run -it --name MackRadio -v MackRadio:/yannqing/MackRadio -p 8080:8080 -d macksimpleai:latest"
+                sh "docker build -f Dockerfile.dockerfile -t mack-simple-ai-macksimpleai:latest ."
+                sh "docker run -it --name macksimpleai -v MackRadio:/yannqing/MackRadio -p 8080:8080 -d mack-simple-ai-macksimpleai:latest"
             }
         }
     }
