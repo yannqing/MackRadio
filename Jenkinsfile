@@ -45,7 +45,7 @@ pipeline {
         }
         stage('构建镜像，创建并运行容器') {
             steps {
-                sh "docker compose up -d"
+                sh "docker-compose up -d"
             }
         }
     }
