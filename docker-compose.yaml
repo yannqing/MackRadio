@@ -13,12 +13,9 @@ services:
     networks:
       - mynetwork
 
+
 networks:
   mynetwork:
     external: true
 
-external_services:
-  mysql:
-    external: mysql
-  redis:
-    external: mackRedis
+
