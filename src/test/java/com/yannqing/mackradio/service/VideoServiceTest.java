@@ -14,18 +14,12 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 class VideoServiceTest {
 
-    @Resource
-    private VideoService videoService;
 
     @Test
     void getRandomBackgroundMusic() {
-        System.out.println(videoService.getRandomBackgroundMusic());
     }
 
 
-    @Test
-    void mergeBackground() {
-    }
 
     @Test
     void writeListToFile() throws IOException {

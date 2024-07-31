@@ -15,14 +15,6 @@ import java.util.Set;
 @SpringBootTest
 class RedisTests {
 
-    @Resource
-    private UserService userService;
-
-    @Resource
-    private RedisCache redisCache;
-
-    @Autowired
-    private RedisTemplate redisTemplate;
 
     @Test
     void contextLoads() throws Exception {

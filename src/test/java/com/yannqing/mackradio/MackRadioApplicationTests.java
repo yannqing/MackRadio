@@ -71,7 +71,7 @@ class MackRadioApplicationTests {
 
         int index = 4;
         for (int i = 0; i < pass.size(); i++) {
-            userService.update(new UpdateWrapper<User>().eq("id", index ++).set("password", passwordEncoder.encode(pass.get(i))));
+//            userService.update(new UpdateWrapper<User>().eq("id", index ++).set("password", passwordEncoder.encode(pass.get(i))));
         }
     }
 }
