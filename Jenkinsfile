@@ -45,9 +45,7 @@ pipeline {
         }
         stage('构建镜像，创建并运行容器') {
             steps {
-                // 基于 Dockerfile 进行构建
-                sh "docker build -f Dockerfile.dockerfile -t mackradio:v1.0 ."
-                sh "docker run -it --name MackRadio -v MackRadio:/yannqing/MackRadio -p 8080:8080 -d mackradio:v1.0"
+                sh "docker compose up -d"
             }
         }
     }
