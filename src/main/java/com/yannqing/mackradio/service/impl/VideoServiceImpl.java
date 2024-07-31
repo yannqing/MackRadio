@@ -26,6 +26,7 @@ import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.javacv.*;
 import org.bytedeco.javacv.Frame;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -49,6 +50,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -447,12 +449,12 @@ public class VideoServiceImpl implements VideoService {
      * @throws IOException
      * @throws InterruptedException
      */
+    @Async
     @Override
-    public String getMp4(String text, HttpServletRequest request) throws IOException, InterruptedException, IllegalArgumentException, UnsupportedAudioFileException {
+    public CompletableFuture<String> getMp4Async(String text, HttpServletRequest request) throws IOException, InterruptedException, IllegalArgumentException, UnsupportedAudioFileException {
         StopWatch totalWatch = new StopWatch();
         totalWatch.start();
         if (text.length() > 3000) {
-            //异常抛出，如需修改文字，注意修改全局异常！
             throw new RuntimeException("输入文本不能超过3000字，请重试！");
         }
         User loginUser = getLoginUser(request);
@@ -465,14 +467,19 @@ public class VideoServiceImpl implements VideoService {
         log.info("生成txt文件开始");
         stringToText(text);
         String name = UUID.randomUUID() + ".mp4";
-        getMp3BySH(text, name);
 
-        //用户可访问次数-1
-        userService.update(new UpdateWrapper<User>().eq("id", loginUser.getId()).set("accessTimes", loginUser.getAccessTimes() - 1));
-        log.info("返回成功！");
+        CompletableFuture.runAsync(() -> {
+            try {
+                getMp3BySH(text, name);
+                userService.update(new UpdateWrapper<User>().eq("id", loginUser.getId()).set("accessTimes", loginUser.getAccessTimes() - 1));
+            } catch (Exception e) {
+                log.error("异步操作发生异常", e);
+            }
+        });
+
         totalWatch.stop();
         log.info("总耗时：{}", totalWatch.getTotalTimeMillis());
-        return name;
+        return CompletableFuture.completedFuture(name);
     }
 
     /**

@@ -3,6 +3,7 @@ package com.yannqing.mackradio.controller;
 import com.yannqing.mackradio.common.Code;
 import com.yannqing.mackradio.utils.ResultUtils;
 import com.yannqing.mackradio.vo.BaseResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.MediaType;
@@ -17,6 +18,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @RestController
+@Slf4j
 public class FileController {
 
 
@@ -42,7 +44,13 @@ public class FileController {
     public BaseResponse<Object> getCompletion(String fileName) {
         File file = new File("./" + fileName);
         boolean exists = file.exists();
-        return ResultUtils.success(Code.SUCCESS, exists, "获取结果成功");
+        if (exists) {
+            log.info("查询文件成功，文件{}存在", fileName);
+            return ResultUtils.success(Code.SUCCESS, true, "文件存在");
+        } else {
+            log.info("查询文件成功，文件{}不存在", fileName);
+            return ResultUtils.failure(Code.FAILURE, false, "文件不存在");
+        }
     }
 
 }

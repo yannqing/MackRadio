@@ -52,11 +52,11 @@ public class VideoController {
     }
 
     @PostMapping("/mp4")
-    public BaseResponse<String> getMp42(String text, HttpServletRequest request) throws IOException, InterruptedException, UnsupportedAudioFileException {
+    public BaseResponse<String> getMp42(String text, HttpServletRequest request) throws IOException, InterruptedException, UnsupportedAudioFileException, ExecutionException {
 //        log.info("======text:{}======", text);
 //        videoService.getMp4(text);
         long start = System.currentTimeMillis();
-        String mp4Name = videoService.getMp4(text, request);
+        CompletableFuture<String> mp4Name = videoService.getMp4Async(text, request);
         long end = System.currentTimeMillis();
 //        CompletableFuture<BaseResponse<String>> future = CompletableFuture.supplyAsync(() -> {
 //                    try {
@@ -73,6 +73,6 @@ public class VideoController {
 //                });
 //        future.join();
 //        return future;
-        return ResultUtils.success(Code.SUCCESS, mp4Name, "生成成功！" + String.valueOf(end - start));
+        return ResultUtils.success(Code.SUCCESS, mp4Name.get(), "生成成功！");
     }
 }

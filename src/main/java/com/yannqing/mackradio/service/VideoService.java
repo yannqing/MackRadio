@@ -6,10 +6,11 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public interface VideoService {
 
-    String getMp4(String text, HttpServletRequest request) throws IOException, InterruptedException, UnsupportedAudioFileException;
+    CompletableFuture<String> getMp4Async(String text, HttpServletRequest request) throws IOException, InterruptedException, UnsupportedAudioFileException;
 
     String getMp4Byjava(String text, HttpServletRequest request) throws IOException, InterruptedException, IllegalArgumentException, UnsupportedAudioFileException;
 
