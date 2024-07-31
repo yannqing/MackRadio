@@ -1,8 +1,8 @@
 version: '3.8'
 services:
 
-  MackSimpleAI:
-    container_name: MackSimpleAI
+  macksimpleai:
+    container_name: macksimpleai
     build:
       context: .
       dockerfile: ./Dockerfile.dockerfile
