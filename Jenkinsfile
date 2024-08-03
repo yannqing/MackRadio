@@ -47,7 +47,7 @@ pipeline {
             steps {
                 // 基于 Dockerfile 进行构建
                 sh "docker build -f Dockerfile.dockerfile -t mack-simple-ai-macksimpleai:latest ."
-                sh "docker run -it --name macksimpleai --network mynetwork -v MackRadio:/yannqing/MackRadio -v ~/video/backend:/yannqing/MackRadio/java -p 8080:8080 -d mack-simple-ai-macksimpleai:latest"
+                sh "docker run -it --name macksimpleai --network mynetwork -v ~/video/backend:/yannqing/MackRadio/java -p 8080:8080 -d mack-simple-ai-macksimpleai:latest"
             }
         }
     }
