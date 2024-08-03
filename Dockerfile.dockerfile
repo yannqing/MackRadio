@@ -1,14 +1,14 @@
-# 使用 Ubuntu 作为基础镜像
-FROM ubuntu:latest
+# 使用 OpenJDK 17 slim 版本作为基础镜像
+FROM openjdk:17-slim
 
 # 设置维护者标签
 LABEL maintainer="yannqing <yannqing.com>"
 LABEL version="1.0"
 LABEL description="MackRadio Simple AI"
 
-# 更新包列表并安装 OpenJDK 17 和 bash
+# 更新包列表并安装 bash
 RUN apt-get update && \
-    apt-get install -y openjdk-17-jdk bash && \
+    apt-get install -y bash && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
