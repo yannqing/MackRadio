@@ -8,7 +8,7 @@ LABEL description="MackRadio Simple AI"
 
 # 更新包列表并安装 bash
 RUN apt-get update && \
-    apt-get install -y bash && \
+    apt-get install -y bash wget && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
