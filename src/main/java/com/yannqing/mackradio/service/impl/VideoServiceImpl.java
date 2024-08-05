@@ -180,7 +180,7 @@ public class VideoServiceImpl implements VideoService {
                 String radioPath = "./video/" + UUID.randomUUID() + ".mp4"; //无字幕视频（未生成）
                 String voice = "./music/" + taskId + ".lame";   //讯飞生成的lame文件
                 String imageUrl = UUID.randomUUID() + ".txt";   //放置图片URL的txt
-                String imageDir = "./image/images/" + UUID.randomUUID(); //放置图片的文件夹
+                String imageDir = UUID.randomUUID().toString(); //放置图片的文件夹
                 String tempVideo = "./video/" + UUID.randomUUID() + ".mp4"; //放置无音频的视频
                 //生成图片：
                 startTime = Instant.now();
@@ -189,7 +189,7 @@ public class VideoServiceImpl implements VideoService {
                     throw new IllegalArgumentException("生成图片数量为0，无法继续进行！");
                 }
                 picture.forEach(pic -> {
-                    htmlToPng(pic, imageDir + "/" + UUID.randomUUID() + ".png");
+                    htmlToPng(pic, "./image/images/" + imageDir + "/" + UUID.randomUUID() + ".png");
                 });
 
                 log.info("图片生成成功：{}", picture);
