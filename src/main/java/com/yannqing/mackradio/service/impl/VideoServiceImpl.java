@@ -188,7 +188,9 @@ public class VideoServiceImpl implements VideoService {
                 if (picture.isEmpty()) {
                     throw new IllegalArgumentException("生成图片数量为0，无法继续进行！");
                 }
-                log.info("图片生成成功：{}", picture.toString());
+                picture.forEach(pic -> htmlToPng(pic, imageDir));
+
+                log.info("图片生成成功：{}", picture);
                 log.info("图片生成耗时：{}", Duration.between(startTime, Instant.now()));
                 //断句
                 List<String> sentences = splitSentencesFromFile(text);
@@ -1000,7 +1002,7 @@ public class VideoServiceImpl implements VideoService {
      * @param voice  字幕朗读的音频文件路径
      * @param output 输出文件的音频文件路径
      */
-    public void mergeBackground(String voice, String background, String output) throws InterruptedException, IOException {
+    public void    mergeBackground(String voice, String background, String output) throws InterruptedException, IOException {
         log.info("字幕配背景音开始===");
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
@@ -1140,6 +1142,30 @@ public class VideoServiceImpl implements VideoService {
 
         Duration totalDuration = Duration.between(LocalTime.MIN, maxEndTime);
         return totalDuration.getSeconds();
+    }
+
+    public void htmlToPng(String imageUrl, String outputFilePath) {
+        try {
+            // 从URL下载图片
+            URL url = new URL(imageUrl);
+            InputStream inputStream = url.openStream();
+            BufferedImage image = ImageIO.read(inputStream);
+
+            log.info("图片下载地址：{}", outputFilePath);
+
+            File file = new File(outputFilePath);
+
+            if (!file.getParentFile().exists()) {
+                file.getParentFile().mkdirs();
+            }
+            // 将图片保存为PNG格式
+            ImageIO.write(image, "png", file);
+
+            System.out.println("Image converted and saved as PNG format.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     private User getLoginUser(HttpServletRequest request) throws JsonProcessingException {
